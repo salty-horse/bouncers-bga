@@ -54,21 +54,11 @@
 if (!defined('STATE_END_GAME')) {
 
 define('STATE_NEW_HAND', 2);
-define('STATE_PICK_TOPPINGS', 3);
-define('STATE_NEXT_PLAYER_PICK_TOPPINGS', 4);
-define('STATE_NEXT_PLAYER_ADD_RELISH', 5);
-define('STATE_NEXT_PLAYER_ADD_RELISH_OR_SMOTHER', 6);
-define('STATE_ADD_RELISH', 7);
-define('STATE_ADD_RELISH_OR_SMOTHER', 8);
-define('STATE_FIRST_TRICK', 9);
-define('STATE_CHOOSE_WORKS_DIRECTION', 10);
-define('STATE_NEW_TRICK', 11);
-define('STATE_PLAYER_TURN_TRY_AUTOPLAY', 12);
-define('STATE_PLAYER_TURN', 13);
-define('STATE_NEXT_PLAYER', 14);
-define('STATE_REVEAL_STRAWMEN', 15);
-define('STATE_END_HAND', 16);
-define('STATE_END_GAME', STATE_END_GAME);
+define('STATE_PLAYER_TURN', 3);
+define('STATE_NEXT_PLAYER', 4);
+define('STATE_END_HAND', 5);
+define('STATE_END_ROUND', 6);
+define('STATE_END_GAME', 99);
 }
 
 $machinestates = [
@@ -79,94 +69,80 @@ $machinestates = [
             'description' => clienttranslate('Game setup'),
             'type' => 'manager',
             'action' => 'stGameSetup',
-            'transitions' => ['' => 10]
+            'transitions' => ['' => NEW_ROUND]
     ],
     
     // stGameSetup manages the state of the game
     
     // New Round
-    10 => [
+    NEW_ROUND => [
             'name' => 'newRound',
             'description' => '',
             'type' => 'game',
             'action' => 'stNewRound',
             'updateGameProgression' => true,
-            'transitions' => ['' => 12]
+            'transitions' => ['' => STATE_NEW_HAND]
     ],
     
     // New Hand (each game will have an arbitrary number of rounds / hands)
     
-    12 => [
+    STATE_NEW_HAND => [
             'name' => 'newHand',
             'description' => '',
             'type' => 'game',
             'action' => 'stNewHand',
             'updateGameProgression' => true,
-            'transitions' => ['' => 13]
-    ],
-    
-    // Bidding
-    
-    13 => [
-            'name' => 'bidding',
-            'description' => clienttranslate('Waiting for other players to bid'),
-            'descriptionmyturn' => clienttranslate('You must choose 3 cards and a type of bid'),
-            'type' => 'multipleactiveplayer',
-            'action' => 'stBidding',
-            'possibleactions' => ['submitBid', 'undoBid', 'displayScore'),
-            'updateGameProgression' => false,
-            'transitions' => ['biddingDone' => 16]
-    ],
-    16 => [
-            'name' => 'checkDeclareOrReveal',
-            'description' => '',
-            'type' => 'game',
-            'action' => 'stCheckDeclareOrReveal',
-            'updateGameProgression' => false,
-            'transitions' => ['startTrickTaking' => 31]
+            'transitions' => ['' => STATE_PLAYER_TURN]
     ],
     
     // Trick
     
-    31 => [
+    STATE_PLAYER_TURN => [
             'name' => 'playerTurn',
             'description' => clienttranslate('${actplayer} must play a card'),
             'descriptionmyturn' => clienttranslate('${you} must play a card'),
             'args' => 'argPlayableCards',
             'type' => 'activeplayer',
-            'possibleactions' => ['playCard', 'displayScore'),
-            'transitions' => ['playCard' => 32]
+            'possibleactions' => ['playCard', 'displayScore'],
+            'transitions' => ['playCard' => STATE_NEXT_PLAYER]
     ],
-    32 => [
+
+    STATE_NEXT_PLAYER => [
             'name' => 'nextPlayer',
             'description' => '',
             'type' => 'game',
             'action' => 'stNextPlayer',
-            'transitions' => ['nextPlayer' => 31, 'nextTrick' => 31, 'endHand' => 40]
+            'transitions' => [
+                'nextPlayer' => STATE_PLAYER_TURN,
+                'nextTrick' => STATE_PLAYER_TURN,
+                'endHand' => STATE_END_HAND
+            ]
     ],
     
     // End of the hand (scoring, etc...)
-    40 => [
+    STATE_END_HAND => [
             'name' => 'endHand',
             'description' => '',
             'type' => 'game',
             'action' => 'stEndHand',
             'updateGameProgression' => true,
             'transitions' => [
-                'endRound' => 50,
+                'endRound' => STATE_END_ROUND,
                 'gameEnd' => STATE_END_GAME,
-                'newHand' => 12)
+                'newHand' => STATE_NEW_HAND
+            ]
     ],
     
-    50 => [
+    STATE_END_ROUND => [
             'name' => 'endRound',
             'description' => '',
             'type' => 'game',
             'action' => 'stEndRound',
             'updateGameProgression' => true,
             'transitions' => [
-                'newRound' => 10,
-                'gameEnd' => STATE_END_GAME)
+                'newRound' => STATE_NEW_ROUND,
+                'gameEnd' => STATE_END_GAME
+            ]
     ],
     
     // Final state.
@@ -180,6 +156,3 @@ $machinestates = [
             'args' => 'argGameEnd'
     ]
 ];
-
-
-
