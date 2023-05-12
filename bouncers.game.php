@@ -2,7 +2,8 @@
 /**
   *------
   * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
-  * Bouncers implementation : © Eric Kelly <boardgamearena@useric.com>
+  * Bouncers implementation : © Ori Avtalion <ori@avtalion.name>
+  * Based on NinetyNine implementation: © Eric Kelly <boardgamearena@useric.com>
   *
   * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
   * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -72,7 +73,7 @@ class Bouncers extends Table {
         the game is ready to be played.
 
     */
-    protected function setupNewGame($players, $options = array()) {
+    protected function setupNewGame($players, $options = []) {
         $this->initializePlayers($players);
 
         /************ Start the game initialization *****/
@@ -121,7 +122,7 @@ class Bouncers extends Table {
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialized it there.
         $sql = "INSERT INTO player (player_id, player_score, player_color, player_canal, player_name, player_avatar) VALUES ";
-        $values = array();
+        $values = [];
         foreach ($players as $player_id => $player) {
             $color = array_shift($default_color);
             $values[] = "('".$player_id."','$start_points','$color','".$player['player_canal']."','".addslashes($player['player_name'] )."','".addslashes($player['player_avatar'])."')";
@@ -172,7 +173,7 @@ class Bouncers extends Table {
 
     // Create the deck
     function createCards() {
-        $cards = array();
+        $cards = [];
         // $suits = array( "club", "diamond", "spade", "heart" );
         for ($suit_id = 0; $suit_id < 4; $suit_id++) {
             // 2, 3, 4, ... K, A
@@ -203,7 +204,7 @@ class Bouncers extends Table {
         _ when a player refresh the game page (F5)
     */
     protected function getAllDatas() {
-        $result = array('players' => array());
+        $result = array('players' => []);
 
         // !! We must only return informations visible by this player !!
         $player_id = self::getCurrentPlayerId();
@@ -467,7 +468,7 @@ class Bouncers extends Table {
         $playerId = self::getCurrentPlayerId();
         if ($lastScoreInfo == null) {
             $this->notifyPlayer($playerId, 'scoreDisplayRequest',
-                clienttranslate("No score to display"), array());
+                clienttranslate("No score to display"), []);
         } else {
             $this->notifyPlayer($playerId, "tableWindow", '', array(
                 "id" => 'scoreView',
@@ -590,7 +591,7 @@ class Bouncers extends Table {
             throw new feException(self::_("Invalid round"));
         }
         $roundScores = $this->getCollectionFromDB("SELECT player_id, score FROM round_scores WHERE round_number='$round'", true);
-        $result = array();
+        $result = [];
         $players = self::loadPlayersBasicInfos();
         foreach ($roundScores as $playerId => $score) {
             $result[$playerId] = intval($score);
@@ -621,7 +622,7 @@ class Bouncers extends Table {
     **/
     function dbGetScores() {
         $scores = $this->getCollectionFromDB("SELECT player_id, player_score FROM player", true);
-        $result = array();
+        $result = [];
         foreach ($scores as $playerId => $score) {
             $result[$playerId] = intval($score);
         }
@@ -658,7 +659,7 @@ class Bouncers extends Table {
     // Returns:
     // { <player id> => 2, ... }
     function dbGetRoundWins() {
-        $result = array();
+        $result = [];
         $players = self::loadPlayersBasicInfos();
         $roundScores = $this->getObjectListFromDB("SELECT player_id, score, round_number round FROM round_scores WHERE 1");
 
@@ -684,7 +685,7 @@ class Bouncers extends Table {
         { <Player id> => { 'name' => 'Player name', 'decrev': 2 } }
     **/
     function getDeclareRevealPlayerInfo() {
-        $output = array();
+        $output = [];
         $result = $this->getCollectionFromDB("SELECT player_id id, player_name name, player_declare_reveal decrev FROM player WHERE player_declare_reveal != 0");
         if (count($result) > 1) {
             throw new feException(self::_("Invalid game state - multiple declaring or revealing players"));
@@ -771,8 +772,8 @@ class Bouncers extends Table {
             "playerId" => 0, // Player declaring or revealing
             "playerName" => "",
             "playerColor" => "",
-            "cards" => array(), // If the player is revealing, this will have cards
-            "bid" => array(), // If the player is only declaring, this will have cards
+            "cards" => [], // If the player is revealing, this will have cards
+            "bid" => [], // If the player is only declaring, this will have cards
             "decRev" => 0
         );
         $declaringOrRevealingPlayer = 0;
@@ -802,7 +803,7 @@ class Bouncers extends Table {
          for the current trick
      **/
     function getTrickCounts() {
-        $tricksWon = array();
+        $tricksWon = [];
         $players = self::loadPlayersBasicInfos();
         $playerCount = 3;
         if (count($players) == 4) {
@@ -877,7 +878,7 @@ class Bouncers extends Table {
 
         // Using 36 to represent the joker
         if ($randomCard == 36) {
-            self::notifyAllPlayers('trumpSelected', clienttranslate('Joker was selected. This is a no trump hand.'), array());
+            self::notifyAllPlayers('trumpSelected', clienttranslate('Joker was selected. This is a no trump hand.'), []);
             self::setGameStateValue("currentHandTrump", -1);
         } else {
             $suit = intdiv($randomCard, 9);
@@ -921,7 +922,7 @@ class Bouncers extends Table {
     // Return players => direction (N/S/E/W) from the point of view
     //  of current player (current player must be on south)
     function getPlayersToDirection() {
-        $result = array();
+        $result = [];
 
         $players = self::loadPlayersBasicInfos();
         $nextPlayer = self::createNextPlayerTable(array_keys($players));
@@ -1631,10 +1632,10 @@ class Bouncers extends Table {
     **/
     function generateScoreInfo() {
         $players = self::loadPlayersBasicInfos();
-        $playerBids = array();
-        $playerBidsStr = array();
-        $playerNames = array();
-        $roundScore = array();
+        $playerBids = [];
+        $playerBidsStr = [];
+        $playerNames = [];
+        $roundScore = [];
         $tricksWon = $this->getTrickCounts();
         $round = $this->getCurrentRound();
         foreach ($players as $player_id => $player) {
@@ -1655,17 +1656,17 @@ class Bouncers extends Table {
 
     function generateScoreInfoHelper($playerNames, $bid, $tricks, $decRev,
             $decRevPlayer, $currentScores) {
-        $result = array();
-        $total = array();
-        $result['name'] = array();
+        $result = [];
+        $total = [];
+        $result['name'] = [];
         foreach ($playerNames as $playerId => $name) {
             $result['name'][$playerId] = $name;
         }
-        $result['bid'] = array();
+        $result['bid'] = [];
         foreach ($bid as $playerId => $playerBid) {
             $result['bid'][$playerId] = intval($playerBid);
         }
-        $result['bidStr'] = array();
+        $result['bidStr'] = [];
         foreach ($bid as $playerId => $playerBid) {
             if ($this->getPlayerCount() == 4 && $playerBid == 0) {
                 $result['bidStr'][$playerId] = "0/10";
@@ -1673,8 +1674,8 @@ class Bouncers extends Table {
                 $result['bidStr'][$playerId] = strval($playerBid);
             }
         }
-        $madeBid = array();
-        $result['tricks'] = array();
+        $madeBid = [];
+        $result['tricks'] = [];
         foreach ($tricks as $playerId => $trickCount) {
             $result['tricks'][$playerId] = $trickCount;
             $total[$playerId] = $trickCount;
@@ -1684,7 +1685,7 @@ class Bouncers extends Table {
         }
         $result['correctBidCount'] = count($madeBid);
         $handBonus = 40 - (count($madeBid) * 10);
-        $result['bonus'] = array();
+        $result['bonus'] = [];
         foreach ($tricks as $playerId => $trickCount) {
             if ($this->didPlayerMakeBid($trickCount, $bid[$playerId])) {
                 $result['bonus'][$playerId] = $handBonus;
@@ -1694,7 +1695,7 @@ class Bouncers extends Table {
             }
         }
         if ($decRevPlayer != null) {
-            $result['decrev'] = array();
+            $result['decrev'] = [];
             $madeBid = $this->didPlayerMakeBid($tricks[$decRevPlayer],
                 $bid[$decRevPlayer]);
             $pointSwing = 30;
@@ -1720,7 +1721,7 @@ class Bouncers extends Table {
             }
         }
         $result['total'] = $total;
-        $result['currentScore'] = array();
+        $result['currentScore'] = [];
         foreach ($currentScores as $playerId => $score) {
             $result['currentScore'][$playerId] = intval($score);
         }
@@ -1738,7 +1739,7 @@ class Bouncers extends Table {
     **/
     function createHandScoringTable($scoreInfo) {
         $players = self::loadPlayersBasicInfos();
-        $table = array();
+        $table = [];
         $firstRow = array('');
         foreach ($players as $player_id => $player) {
             $firstRow[] = array('str' => '${player_name}',
@@ -1840,19 +1841,19 @@ class Bouncers extends Table {
     **/
     function generateRoundScoreInfo() {
         $players = self::loadPlayersBasicInfos();
-        $result = array();
-        $result['name'] = array();
-        $result['roundScore'] = array();
-        $result['roundWins'] = array();
-        $result['gameScore'] = array();
+        $result = [];
+        $result['name'] = [];
+        $result['roundScore'] = [];
+        $result['roundWins'] = [];
+        $result['gameScore'] = [];
         $round = $this->getCurrentRound();
-        $playerBroke100 = array();
-        $countBroke100 = array();
+        $playerBroke100 = [];
+        $countBroke100 = [];
         foreach ($players as $playerId => $player) {
             $result['name'][$playerId] = $player['player_name'];
-            $result['roundScore'][$playerId] = array();
+            $result['roundScore'][$playerId] = [];
             $result['roundWins'][$playerId] = 0;
-            $playerBroke100[$playerId] = array();
+            $playerBroke100[$playerId] = [];
             for ($i = 0; $i < $round + 1; $i++) {
                 $roundScore = $this->dbGetRoundScore($playerId, $i);
                 if (!array_key_exists($i, $countBroke100)) {
@@ -1870,9 +1871,9 @@ class Bouncers extends Table {
         }
         // Calculate round bonuses
         if ($this->doesGameUseRoundBonuses()) {
-            $result['roundBonus'] = array();
+            $result['roundBonus'] = [];
             foreach ($players as $playerId => $player) {
-                $result['roundBonus'][$playerId] = array();
+                $result['roundBonus'][$playerId] = [];
                 $playerGameScoreTotal = 0;
                 for ($i = 0; $i < $round + 1; $i++) {
                     $roundBonusPoints = 0;
@@ -1887,9 +1888,9 @@ class Bouncers extends Table {
                 }
             }
         }
-        $result['roundTotal'] = array();
+        $result['roundTotal'] = [];
         foreach ($players as $playerId => $player) {
-            $result['roundTotal'][$playerId] = array();
+            $result['roundTotal'][$playerId] = [];
             $playerGameScoreTotal = 0;
             for ($i = 0; $i < $round + 1; $i++) {
                 $roundBonusPoints = 0;

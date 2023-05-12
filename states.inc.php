@@ -2,7 +2,8 @@
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
- * Bouncers implementation : © Eric Kelly <boardgamearena@useric.com>
+ * Bouncers implementation : © Ori Avtalion <ori@avtalion.name>
+ * Based on NinetyNine implementation: © Eric Kelly <boardgamearena@useric.com>
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -10,7 +11,7 @@
  *
  * states.inc.php
  *
- * heartsla game states description
+ * bouncers game states description
  *
  */
 
@@ -50,115 +51,135 @@
 //    !! It is not a good idea to modify this file when a game is running !!
 
 
-$machinestates = array(
+if (!defined('STATE_END_GAME')) {
 
-        // The initial state. Please do not modify.
-        1 => array(
-                "name" => "gameSetup",
-                "description" => clienttranslate("Game setup"),
-                "type" => "manager",
-                "action" => "stGameSetup",
-                "transitions" => array("" => 10)
-        ),
+define('STATE_NEW_HAND', 2);
+define('STATE_PICK_TOPPINGS', 3);
+define('STATE_NEXT_PLAYER_PICK_TOPPINGS', 4);
+define('STATE_NEXT_PLAYER_ADD_RELISH', 5);
+define('STATE_NEXT_PLAYER_ADD_RELISH_OR_SMOTHER', 6);
+define('STATE_ADD_RELISH', 7);
+define('STATE_ADD_RELISH_OR_SMOTHER', 8);
+define('STATE_FIRST_TRICK', 9);
+define('STATE_CHOOSE_WORKS_DIRECTION', 10);
+define('STATE_NEW_TRICK', 11);
+define('STATE_PLAYER_TURN_TRY_AUTOPLAY', 12);
+define('STATE_PLAYER_TURN', 13);
+define('STATE_NEXT_PLAYER', 14);
+define('STATE_REVEAL_STRAWMEN', 15);
+define('STATE_END_HAND', 16);
+define('STATE_END_GAME', STATE_END_GAME);
+}
 
-        // stGameSetup manages the state of the game
+$machinestates = [
 
-        // New Round
-        10 => array(
-                "name" => "newRound",
-                "description" => "",
-                "type" => "game",
-                "action" => "stNewRound",
-                "updateGameProgression" => true,
-                "transitions" => array("" => 12)
-        ),
-
-        // New Hand (each game will have an arbitrary number of rounds / hands)
-
-        12 => array(
-                "name" => "newHand",
-                "description" => "",
-                "type" => "game",
-                "action" => "stNewHand",
-                "updateGameProgression" => true,
-                "transitions" => array("" => 13)
-        ),
-
-        // Bidding
-
-        13 => array(
-                "name" => "bidding",
-                "description" => clienttranslate("Waiting for other players to bid"),
-                "descriptionmyturn" => clienttranslate("You must choose 3 cards and a type of bid"),
-                "type" => "multipleactiveplayer",
-                "action" => "stBidding",
-                "possibleactions" => array("submitBid", "undoBid", "displayScore"),
-                "updateGameProgression" => false,
-                "transitions" => array("biddingDone" => 16)
-        ),
-        16 => array(
-                "name" => "checkDeclareOrReveal",
-                "description" => "",
-                "type" => "game",
-                "action" => "stCheckDeclareOrReveal",
-                "updateGameProgression" => false,
-                "transitions" => array("startTrickTaking" => 31)
-        ),
-
-        // Trick
-
-        31 => array(
-                "name" => "playerTurn",
-                "description" => clienttranslate('${actplayer} must play a card'),
-                "descriptionmyturn" => clienttranslate('${you} must play a card'),
-                "args" => "argPlayableCards",
-                "type" => "activeplayer",
-                "possibleactions" => array("playCard", "displayScore"),
-                "transitions" => array("playCard" => 32)
-        ),
-        32 => array(
-                "name" => "nextPlayer",
-                "description" => "",
-                "type" => "game",
-                "action" => "stNextPlayer",
-                "transitions" => array("nextPlayer" => 31, "nextTrick" => 31, "endHand" => 40)
-        ),
-
-        // End of the hand (scoring, etc...)
-        40 => array(
-                "name" => "endHand",
-                "description" => "",
-                "type" => "game",
-                "action" => "stEndHand",
-                "updateGameProgression" => true,
-                "transitions" => array(
-                    "endRound" => 50,
-                    "gameEnd" => 99,
-                    "newHand" => 12)
-        ),
-
-        50 => array(
-                "name" => "endRound",
-                "description" => "",
-                "type" => "game",
-                "action" => "stEndRound",
-                "updateGameProgression" => true,
-                "transitions" => array(
-                    "newRound" => 10,
-                    "gameEnd" => 99)
-        ),
-
-        // Final state.
-        // Please do not modify.
-        99 => array(
-                "name" => "gameEnd",
-                "description" => clienttranslate("End of game"),
-                "action" => "stGameEnd",
-                "type" => "manager",
-                "action" => "stGameEnd",
-                "args" => "argGameEnd"
-        )
-);
+    // The initial state. Please do not modify.
+    1 => [
+            'name' => 'gameSetup',
+            'description' => clienttranslate('Game setup'),
+            'type' => 'manager',
+            'action' => 'stGameSetup',
+            'transitions' => ['' => 10]
+    ],
+    
+    // stGameSetup manages the state of the game
+    
+    // New Round
+    10 => [
+            'name' => 'newRound',
+            'description' => '',
+            'type' => 'game',
+            'action' => 'stNewRound',
+            'updateGameProgression' => true,
+            'transitions' => ['' => 12]
+    ],
+    
+    // New Hand (each game will have an arbitrary number of rounds / hands)
+    
+    12 => [
+            'name' => 'newHand',
+            'description' => '',
+            'type' => 'game',
+            'action' => 'stNewHand',
+            'updateGameProgression' => true,
+            'transitions' => ['' => 13]
+    ],
+    
+    // Bidding
+    
+    13 => [
+            'name' => 'bidding',
+            'description' => clienttranslate('Waiting for other players to bid'),
+            'descriptionmyturn' => clienttranslate('You must choose 3 cards and a type of bid'),
+            'type' => 'multipleactiveplayer',
+            'action' => 'stBidding',
+            'possibleactions' => ['submitBid', 'undoBid', 'displayScore'),
+            'updateGameProgression' => false,
+            'transitions' => ['biddingDone' => 16]
+    ],
+    16 => [
+            'name' => 'checkDeclareOrReveal',
+            'description' => '',
+            'type' => 'game',
+            'action' => 'stCheckDeclareOrReveal',
+            'updateGameProgression' => false,
+            'transitions' => ['startTrickTaking' => 31]
+    ],
+    
+    // Trick
+    
+    31 => [
+            'name' => 'playerTurn',
+            'description' => clienttranslate('${actplayer} must play a card'),
+            'descriptionmyturn' => clienttranslate('${you} must play a card'),
+            'args' => 'argPlayableCards',
+            'type' => 'activeplayer',
+            'possibleactions' => ['playCard', 'displayScore'),
+            'transitions' => ['playCard' => 32]
+    ],
+    32 => [
+            'name' => 'nextPlayer',
+            'description' => '',
+            'type' => 'game',
+            'action' => 'stNextPlayer',
+            'transitions' => ['nextPlayer' => 31, 'nextTrick' => 31, 'endHand' => 40]
+    ],
+    
+    // End of the hand (scoring, etc...)
+    40 => [
+            'name' => 'endHand',
+            'description' => '',
+            'type' => 'game',
+            'action' => 'stEndHand',
+            'updateGameProgression' => true,
+            'transitions' => [
+                'endRound' => 50,
+                'gameEnd' => STATE_END_GAME,
+                'newHand' => 12)
+    ],
+    
+    50 => [
+            'name' => 'endRound',
+            'description' => '',
+            'type' => 'game',
+            'action' => 'stEndRound',
+            'updateGameProgression' => true,
+            'transitions' => [
+                'newRound' => 10,
+                'gameEnd' => STATE_END_GAME)
+    ],
+    
+    // Final state.
+    // Please do not modify.
+    STATE_END_GAME => [
+            'name' => 'gameEnd',
+            'description' => clienttranslate('End of game'),
+            'action' => 'stGameEnd',
+            'type' => 'manager',
+            'action' => 'stGameEnd',
+            'args' => 'argGameEnd'
+    ]
+];
 
 
 

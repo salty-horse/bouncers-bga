@@ -1,7 +1,9 @@
 <?php
 
 /*
-    Bouncers implementation : © Eric Kelly <boardgamearena@useric.com>
+    Bouncers implementation : © Ori Avtalion <ori@avtalion.name>
+    Based on NinetyNine implementation: © Eric Kelly <boardgamearena@useric.com>
+
 
     From this file, you can edit the various meta-information of your game.
 
@@ -14,7 +16,7 @@
 
 $gameinfos = array(
 
-'game_name' => "Ninety-Nine",
+'game_name' => 'Bouncers',
 
 // Game designer (or game designers, separated by commas)
 'designer' => 'David Parlett',
@@ -23,7 +25,7 @@ $gameinfos = array(
 'artist' => 'Unknown',
 
 // Year of FIRST publication of this game. Can be negative.
-'year' => 1967,
+'year' => 0,
 
 // Game publisher
 'publisher' => '(Public Domain)',
@@ -35,20 +37,19 @@ $gameinfos = array(
 'publisher_bgg_id' => 171,
 
 // Board game geek ID of the game
-'bgg_id' => 6688,
+'bgg_id' => 63708,
 
 // Players configuration that can be played (ex: 2 to 4 players)
-'players' => array(3, 4),
+'players' => [3],
 
 // Suggest players to play with this number of players. Must be null if there is no such advice, or if there is only one possible player configuration.
 'suggest_player_number' => 3,
 
 // Discourage players to play with these numbers of players. Must be null if there is no such advice.
-'not_recommend_player_number' => array(4),
-// 'not_recommend_player_number' => array( 2, 3 ),      // <= example: this is not recommended to play this game with 2 or 3 players
+'not_recommend_player_number' => null,
 
 // Estimated game duration, in minutes (used only for the launch, afterward the real duration is computed)
-'estimated_duration' => 60,
+'estimated_duration' => 20,
 
 // Time in second add to a player when "giveExtraTime" is called (speed profile = fast)
 'fast_additional_time' => 30,
@@ -65,7 +66,7 @@ $gameinfos = array(
 // Note: if you are NOT using any tie breaker, leave the empty string.
 //
 // Example: 'tie_breaker_description' => totranslate( "Number of remaining cards in hand" ),
-'tie_breaker_description' => totranslate("Total score"),
+'tie_breaker_description' => "",
 
 // Game is "beta". A game MUST set is_beta=1 when published on BGA for the first time, and must remains like this until all bugs are fixed.
 'is_beta' => 1,
@@ -83,17 +84,17 @@ $gameinfos = array(
 'strategy' => 3,
 
 // Diplomacy of the game, from 0 (no interaction in this game) to 5 (totally based on interaction and discussion between players)
-'diplomacy' => 2,
+'diplomacy' => 0,
 
 // Colors attributed to players
-'player_colors' => array( "ff0000", "008000", "0000ff", "ffa500", "773300" ),
+'player_colors' => ['ff0000', '008000', '0000ff', 'ffa500', '773300'],
 
 // Favorite colors support : if set to "true", support attribution of favorite colors based on player's preferences (see reattributeColorsBasedOnPreferences PHP method)
-'favorite_colors_support' => true,
+'favorite_colors_support' => false,
 
 // Game interface width range (pixels)
 // Note: game interface = space on the left side, without the column on the right
-'game_interface_width' => array(
+'game_interface_width' => [
 
     // Minimum width
     //  default: 740
@@ -106,7 +107,7 @@ $gameinfos = array(
     //  maximum possible value: unlimited
     //  minimum possible value: 740
     'max' => null
-),
+],
 
 // Games categories
 //  You can attribute a maximum of FIVE "tags" for your game.
@@ -115,7 +116,7 @@ $gameinfos = array(
 //  http://en.doc.boardgamearena.com/Game_meta-information:_gameinfos.inc.php
 //  IMPORTANT: this list should be ORDERED, with the most important tag first.
 //  IMPORTANT: it is mandatory that the FIRST tag is 1, 2, 3 and 4 (= game category)
-'tags' => array( 1, 12, 200 ),
+'tags' => [1],
 
 
 //////// BGA SANDBOX ONLY PARAMETERS (DO NOT MODIFY)
