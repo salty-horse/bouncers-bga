@@ -29,18 +29,14 @@ class Bouncers extends Table {
         //  If your game has options (variants), you also have to associate here a label to
         //  the corresponding ID in gameoptions.inc.php.
         // Note: afterwards, you can get/set the global variables with getGameStateValue/setGameStateInitialValue/setGameStateValue
-		parent::__construct();
-		self::initGameStateLabels([
-			 'ledSuit' => 11,
-			 'previousHandWinnerCount' => 12,
-			 'currentRound' => 13,
-			 'firstDealer' => 14,
-			 'currentPlayer' => 15,
-			 'currentDealer' => 16,
-			 'handCount' => 17,
-			 'lastScoreInfo' => 19,
-			 'gameStyle' => 100,
-			 'scoringStyle' => 101
+        parent::__construct();
+        self::initGameStateLabels([
+            'ledSuit' => 10,
+            'firstPlayer' => 11,
+            'currentPlayer' => 12,
+            'handNum' => 13,
+            'showUpcomingPoints' => 100,
+            'specialBouncerAbilities' => 101,
         ]);
 
         $this->cards = self::getNew('module.common.deck');
@@ -65,23 +61,18 @@ class Bouncers extends Table {
         /************ Start the game initialization *****/
         // Init global values with their initial values
 
-        // Set current trick suit to 4 (-1 = no trick color)
-        $this->clearCurrentTrickSuit();
+        self::setGameStateInitialValue('ledSuit', 0);
+        self::setGameStateInitialValue('handNum', 0);
 
-        // Previous Hand Winner Count
-        $this->clearPreviousWinnerCount();
+        // Activate first player (which is in general a good idea :))
+        $this->activeNextPlayer();
 
-        // Current Round
-        $this->setCurrentRound(0);
-
-        // Hand count
-        self::setGameStateInitialValue("handCount", 0);
-
-        // Initialize dealer and first player
-        $this->setupDealer($players);
+        $player_id = self::getActivePlayerId();
+        self::setGameStateInitialValue('firstPlayer', $player_id);
 
         // Init game statistics
-        $this->initializeStatistics();
+        self::initStat('player', 'tricksWon', 0);
+        self::initStat('player', 'trickWinPercentage', 0);
 
         // Create cards
         $this->createCards();
@@ -92,19 +83,19 @@ class Bouncers extends Table {
     /************* Initialization helper functions ***************/
 
     function initializePlayers($players) {
-        $sql = "DELETE FROM player WHERE 1 ";
+        $sql = 'DELETE FROM player WHERE 1 ';
         self::DbQuery($sql);
 
         // Set the colors of the players with HTML color code
         // The default below is red/green/blue/yellow
         // The number of colors defined here must correspond to the maximum number of players allowed for the game
-        $default_color = ["ff0000", "008000", "0000ff"];
+        $default_color = ['ff0000', '008000', '0000ff'];
 
         $start_points = 0;
 
         // Create players
         // Note: if you added some extra field on "player" table in the database (dbmodel.sql), you can initialized it there.
-        $sql = "INSERT INTO player (player_id, player_score, player_color, player_canal, player_name, player_avatar) VALUES ";
+        $sql = 'INSERT INTO player (player_id, player_score, player_color, player_canal, player_name, player_avatar) VALUES ';
         $values = [];
         foreach ($players as $player_id => $player) {
             $color = array_shift($default_color);
@@ -115,38 +106,6 @@ class Bouncers extends Table {
         self::reloadPlayersBasicInfos();
     }
 
-    function setupDealer($players) {
-        $dealer = array_keys($players)[0];
-        $firstPlayer = self::getPlayerAfter($dealer);
-
-        self::setGameStateInitialValue('firstDealer', $dealer);
-        self::setGameStateInitialValue('currentDealer', $dealer);
-
-        // Player with the first action (starts left of dealer, then winner of trick)
-        $this->setCurrentPlayer($firstPlayer);
-    }
-
-    // Initialize the statistics for the end of the game.
-    // All used statistics have to be initialized.
-    function initializeStatistics() {
-        self::initStat("table", "handCount", 0);
-        self::initStat("table", "total3WinnerHands", 0);
-        self::initStat("table", "total2WinnerHands", 0);
-        self::initStat("table", "total1WinnerHands", 0);
-        self::initStat("table", "total0WinnerHands", 0);
-        self::initStat("player", "tricksWon", 0);
-        self::initStat("player", "trickWinPercentage", 0);
-        self::initStat("player", "declareCount", 0);
-        self::initStat("player", "revealCount", 0);
-        self::initStat("player", "declareSuccess", 0);
-        self::initStat("player", "declareSuccessPercentage", 0);
-        self::initStat("player", "revealSuccess", 0);
-        self::initStat("player", "revealSuccessPercentage", 0);
-        self::initStat("player", "successBidCount", 0);
-        self::initStat("player", "successBidPercentage", 0);
-    }
-
-    // Create the deck
     function createCards() {
         $cards = [];
         for ($suit = 1; $suit <= 3; $suit++) {
@@ -182,10 +141,7 @@ class Bouncers extends Table {
 
         // Get information about players
         // Note: you can retrieve some extra field you add for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score ";
-        $sql .= "FROM player ";
-        $sql .= "WHERE 1 ";
-        $dbres = self::DbQuery($sql);
+        $dbres = self::DbQuery('SELECT player_id id, player_score score FROM player WHERE 1');
         while ($player = mysql_fetch_assoc($dbres)) {
             $result['players'][intval($player['id'])] = $player;
         }
@@ -199,27 +155,17 @@ class Bouncers extends Table {
         // Cards played on the table
         $result['cardsontable'] = $this->cards->getCardsInLocation('cardsontable');
 
-        // Result should be the following:
-        // result = { 'players': [[id, score], ...], 'hand': [{card}, ...], 'cardsontable': [...]}
+        // Point card
+        $result['point_card'] = $this->getCardOnTop('points');
+        // TODO: Upcoming cards
 
-        $result['declareReveal'] = $this->getDeclareOrRevealInfo();
-        $declaringOrRevealingPlayer = $result['declareReveal']['playerId'];
-
-        $bidCardIds = $this->cards->getCardsInLocation('bid', $player_id);
-        $bid = $this->getPlayerBid($player_id);
-
-        $result['bid'] = array(
-            "cards" => $bidCardIds,
-            "bid" => $bid
-        );
-
-        $result['dealer'] = $this->getDealer();
-        $result['currentPlayer'] = $this->getCurrentPlayer();
-        $result['trickCounts'] = $this->getTrickCounts();
-        $result['roundScores'] = $this->getCurrentRoundScores();
         $result['gameScores'] = $this->dbGetScores();
-        $result['roundNum'] = $this->getCurrentRound() + 1;
-        $result['handNum'] = $this->getHandCount();
+        $result['handNum'] = $this->getGameStateValue('handNum');
+
+        foreach ($result['players'] as &$player) {
+            $player_id = $player['id'];
+            $player['score_pile'] = $this->getScorePile($player_id);
+        }
 
         return $result;
     }
@@ -235,19 +181,6 @@ class Bouncers extends Table {
     */
     function getGameProgression() {
         // Game progression: get player minimum score
-
-        if ($this->doesGamePlayToThreeRoundWins()) {
-            // This means we're playing up to 3 rounds, not exactly 3 rounds
-            $roundWins = $this->dbGetRoundWins();
-            $maxWinCount = 0;
-            foreach ($roundWins as $playerId => $winCount) {
-                $maxWinCount = max($winCount, $maxWinCount);
-            }
-            return (33 * $maxWinCount) + 1;
-        }
-
-        $round = $this->getCurrentRound();
-        $currentRoundScores = $this->getCurrentRoundScores();
         $maxScore = 0;
         foreach ($currentRoundScores as $playerId => $score) {
             $maxScore = max($maxScore, $score);
@@ -270,33 +203,6 @@ class Bouncers extends Table {
         At this place, you can put any utility methods useful for your game logic
     */
 
-    // Increments the current hand count by one.
-    function incrementHandCount() {
-        self::incStat(1, "handCount");
-        $this->incGameStateValue("handCount", 1);
-    }
-
-    // Gets the current hand number
-    function getHandCount() {
-        return $this->getGameStateValue("handCount");
-    }
-
-    // Gets the current dealer. This rotates after each hand.
-    function getDealer() {
-        return self::getGameStateValue("currentDealer");
-    }
-
-    // Set the current dealer.
-    function setDealer($dealer) {
-        self::setGameStateValue("currentDealer", $dealer);
-    }
-
-    // Rotates the dealer
-    function rotateDealer() {
-        $dealer = $this->getPlayerAfter($this->getDealer());
-        $this->setDealer($dealer);
-    }
-
     // Gets the current player whose turn it is to play a card
     function getCurrentPlayer() {
         return intval(self::getGameStateValue("currentPlayer"));
@@ -305,70 +211,6 @@ class Bouncers extends Table {
     // Sets the current player
     function setCurrentPlayer($playerID) {
         self::setGameStateValue("currentPlayer", $playerID);
-    }
-
-    // Set the number of players who correctly bid the number of tricks they won
-    function setHandWinnerCount($winnerCountOfPreviousHand) {
-        $this->validatePlayerNum($winnerCountOfPreviousHand);
-        self::setGameStateValue("previousHandWinnerCount", $winnerCountOfPreviousHand);
-    }
-
-    // Clears the number of previous winners
-    function clearPreviousWinnerCount() {
-        self::setGameStateValue("previousHandWinnerCount", -1);
-    }
-
-    /**
-        Sets trump to the given value
-          0 = clubs
-          1 = diamonds
-          2 = spades
-          3 = hearts
-          -1 = none
-    **/
-    function setTrump($trumpSuit) {
-        $this->validateSuit($trumpSuit);
-    }
-
-    // Validates that the given argument is a valid suit number
-    // Valid suits include 0-3, with -1 indicating no suit (which is also considered valid)
-    function validateSuit($suit) {
-        if ($suit > 3 || $suit < -1) {
-            throw new feException(sprintf(self::_("Invalid suit: %d"), $suit));
-        }
-    }
-
-    // Validate that the playerNum is within the number of valid players
-    function validatePlayerNum($playerNum) {
-        if ($playerNum < 0 || $playerNum > 3) {
-            throw new feException(sprintf(self::_("Invalid player num: %d"), $playerNum));
-        }
-    }
-
-    // Get the suit that the trick was led with
-    function getCurrentTrickSuit() {
-        return self::getGameStateValue("ledSuit");
-    }
-
-    // Clear the suit that the trick was led with
-    function clearCurrentTrickSuit() {
-        self::setGameStateValue("ledSuit", -1);
-    }
-
-    // Set the trick suit.
-    function setCurrentTrickSuit($trickSuit) {
-        $this->validateSuit($trickSuit);
-        self::setGameStateValue("ledSuit", $trickSuit);
-    }
-
-    // Get the current round number. 0 indexed.
-    function getCurrentRound() {
-        return self::getGameStateValue("currentRound");
-    }
-
-    // Set the current round number. 0 indexed.
-    function setCurrentRound($roundNum) {
-        self::setGameStateValue("currentRound", $roundNum);
     }
 
     // Allow a player to request showing the last score table
@@ -439,96 +281,6 @@ class Bouncers extends Table {
         return $this->getUniqueValueFromDB("SELECT player_color FROM player WHERE player_id='$playerId'");
     }
 
-    // Get the player's bid from the players table
-    // Returns an int representing the total number of tricks the player expected to win
-    function getPlayerBid($playerId) {
-        return $this->getUniqueValueFromDB("SELECT player_bid FROM player WHERE player_id='$playerId'");
-    }
-
-    // Persist the player's declare/reveal request to the database
-    function persistPlayerDeclareRevealRequest($playerId, $decRev) {
-        $sql = "UPDATE player SET player_declare_reveal_request=$decRev WHERE player_id='$playerId'";
-        $this->DbQuery($sql);
-    }
-
-    // Undo a player's declare or reveal request
-    function undoPlayerDeclareOrReveal($playerId) {
-        $sql = "UPDATE player SET player_declare_reveal_request=0 WHERE player_id='$playerId'";
-        $this->DbQuery($sql);
-    }
-
-    // Get the player requests to declare or reveal
-    // Returns:
-    // { <player id> => { 'decrev': '2', 'id' => '<player id>', 'name' => 'Player Name' }}
-    // Note that ALL returned values will be 'Strings', even if they are ints
-    function getPlayerDeclareRevealRequests() {
-        return $this->getNonEmptyCollectionFromDB("SELECT player_id id, player_name name, player_declare_reveal_request decrev FROM player");
-    }
-
-    // Clear all player's declare/reveal requests to the database
-    function clearAllDeclareReveal() {
-        $sql = "UPDATE player SET player_declare_reveal=0, player_declare_reveal_request=0 WHERE 1";
-        $this->DbQuery($sql);
-    }
-
-    // Set the player who actually declares/reveals and persist it to the database
-    function setDeclareReveal($playerId, $decRev) {
-        $sql = "UPDATE player SET player_declare_reveal=$decRev WHERE player_id='$playerId'";
-        $this->DbQuery($sql);
-    }
-
-    // Get the current round scores
-    function getCurrentRoundScores() {
-        return $this->dbGetRoundScores($this->getCurrentRound());
-    }
-
-    // Get the round scores for a particular player and round. This does
-    // not include any round bonuses
-    function dbGetRoundScore($playerId, $round) {
-        return $this->dbGetRoundScores($round)[$playerId];
-    }
-
-    /**
-        Get the round scores for a particular round. This does not include
-        any round bonuses. However, round bonuses may be inferred.
-
-        Output:
-        { <player id> => 60, ... }
-    **/
-    function dbGetRoundScores($round) {
-        if ($round < 0) {
-            throw new feException(self::_("Invalid round"));
-        }
-        $roundScores = $this->getCollectionFromDB("SELECT player_id, score FROM round_scores WHERE round_number='$round'", true);
-        $result = [];
-        $players = self::loadPlayersBasicInfos();
-        foreach ($roundScores as $playerId => $score) {
-            $result[$playerId] = intval($score);
-        }
-        // Default to 0 if we have no values in the db
-        if (count($result) != count($players)) {
-            foreach ($players as $playerId => $player) {
-                $result[$playerId] = 0;
-            }
-        }
-        return $result;
-    }
-
-    // Set the score of a player for the current round
-    function dbSetRoundScore($playerId, $score) {
-        $round = $this->getCurrentRound();
-        $rowId = $this->getUniqueValueFromDB("SELECT id FROM round_scores WHERE player_id='$playerId' AND round_number='$round'");
-        if ($rowId == null) {
-            $this->DbQuery("INSERT INTO round_scores (round_number, player_id, score) VALUES ($round, $playerId, $score)");
-        } else {
-            $this->DbQuery("UPDATE round_scores SET score='$score' WHERE id='$rowId'");
-        }
-    }
-
-    /**
-        Get the game scores for each player. This returns the total score
-        thus far. This includes round bonuses, if applicable.
-    **/
     function dbGetScores() {
         $scores = $this->getCollectionFromDB("SELECT player_id, player_score FROM player", true);
         $result = [];
@@ -564,193 +316,15 @@ class Bouncers extends Table {
         $this->DbQuery("UPDATE player SET player_score_aux='$count' WHERE player_id='$playerId'");
     }
 
-    // This is used for determining how far into the game we are
-    // Returns:
-    // { <player id> => 2, ... }
-    function dbGetRoundWins() {
-        $result = [];
-        $players = self::loadPlayersBasicInfos();
-        $roundScores = $this->getObjectListFromDB("SELECT player_id, score, round_number round FROM round_scores WHERE 1");
-
-        // Default to 0
-        foreach ($players as $playerId => $player) {
-            $result[$playerId] = 0;
-        }
-
-        foreach ($roundScores as $row) {
-            if (intval($row['score']) >= 100) {
-                // Increment the round win count
-                $result[$row['player_id']] += 1;
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-        Gets the 'final' declare/reveal information, after it has been decided.
-
-        Returns:
-        { <Player id> => { 'name' => 'Player name', 'decrev': 2 } }
-    **/
-    function getDeclareRevealPlayerInfo() {
-        $output = [];
-        $result = $this->getCollectionFromDB("SELECT player_id id, player_name name, player_declare_reveal decrev FROM player WHERE player_declare_reveal != 0");
-        if (count($result) > 1) {
-            throw new feException(self::_("Invalid game state - multiple declaring or revealing players"));
-        } else if (count($result) == 1) {
-            $playerId = array_keys($result)[0];
-            $playerName = $result[$playerId]['name'];
-            $decRev = intval($result[$playerId]['decrev']);
-            $output[$playerId] = array(
-                'name' => $playerName,
-                'decrev' => $decRev
-            );
-        }
-        return $output;
-    }
-
 /************** End Database access helper functions ****************/
 
-/************** Card helper functions ****************/
-
-    // Order of id: array( "club", "diamond", "spade", "heart" );
-    function getCardBidValue($card) {
-        switch ($card['type']) {
-            case 0:
-                return 3;
-            case 1:
-                return 0;
-            case 2:
-                return 1;
-            case 3:
-                return 2;
-            default:
-                throw new feException(sprintf(self::_("Unknown suit: %s"), $card['type']));
-        }
-    }
-
-    function getCardValue($card, $suitLed) {
-        if ($card['type'] != $suitLed) {
-            return 0;
-        } else {
-            return $card['type_arg'];
-        }
-    }
-
-    // Get the name of the given suit
-    // [0 = clubs, ... 3 = hearts]
-    function getSuitName($suit) {
-        $this->validateSuit($suit);
-        return $this->suits[$suit]['nametr'];
-    }
-
-    // Get the pluralized name of the given suit
-    // [0 = clubs, ... 3 = hearts]
-    function getPluralSuitName($suit) {
-        $this->validateSuit($suit);
-        return $this->suits[$suit]['pluralname'];
-    }
-
-/************** End Card helper functions ****************/
-
 /************** Other helper functions ****************/
-
-    /**
-        Get all that is needed to render the player declaring/revealing
-
-        Returns:
-        {
-            "playerId" => 0,
-            "playerName" => "Player name",
-            "playerColor" => "",
-            "cards" => [ <card array> ], // Empty if only declaring
-            "bid" => [ <card array> ],
-            "decRev" => 1 // 0 = none, 1 = declare, 2 = reveal
-
-        }
-    **/
-    function getDeclareOrRevealInfo() {
-        $result = $this->getDeclareRevealPlayerInfo();
-
-        // Figure out who wants to declare or reveal
-        $declareReveal = array(
-            "playerId" => 0, // Player declaring or revealing
-            "playerName" => "",
-            "playerColor" => "",
-            "cards" => [], // If the player is revealing, this will have cards
-            "bid" => [], // If the player is only declaring, this will have cards
-            "decRev" => 0
-        );
-        $declaringOrRevealingPlayer = 0;
-        if (count($result) > 0) {
-            $declaringOrRevealingPlayer = array_keys($result)[0];
-            $declareReveal['playerId'] = $declaringOrRevealingPlayer;
-            $declareReveal['playerName'] = $result[$declaringOrRevealingPlayer]['name'];
-            $declareReveal['playerColor'] = $this->getPlayerColor($declaringOrRevealingPlayer);
-            if ($result[$declaringOrRevealingPlayer]['decrev'] >= 1) {
-                $declareReveal['bid'] =
-                    $this->cards->getCardsInLocation('bid', $declaringOrRevealingPlayer);
-                $decRev = 1;
-            }
-            if ($result[$declaringOrRevealingPlayer]['decrev'] == 2) {
-                $declareReveal['cards'] =
-                    $this->cards->getPlayerHand($declaringOrRevealingPlayer);
-                $decRev = 2;
-            }
-            $declareReveal['decRev'] = $decRev;
-        }
-
-        return $declareReveal;
-    }
-
-    /**
-         Returns { <player id> => 2, <player id> => ... }
-         for the current trick
-     **/
-    function getTrickCounts() {
-        $tricksWon = [];
-        $players = self::loadPlayersBasicInfos();
-        $playerCount = 3;
-        if (count($players) == 4) {
-            $playerCount = 4;
-        }
-        foreach ($players as $playerId => $player) {
-            $cardsWon = $this->cards->countCardInLocation('cardswon', $playerId);
-            $tricksWon[$playerId] = $cardsWon / $playerCount;
-        }
-        return $tricksWon;
-    }
-
-    /**
-      Gets the dealer for the start of the round. Returns the player id corresponding
-      to the dealer for the current round.
-    **/
-    function getRoundDealer() {
-        $dealer = self::getGameStateValue("firstDealer");
-        $round = $this->getCurrentRound();
-        $basicPlayerInfo = self::loadPlayersBasicInfos();
-
-        $firstDealerPosition = $basicPlayerInfo[$dealer]['player_no'];
-
-        // Stupidly, player position is 1 indexed. So I have to do this weird logic.
-        $actualDealerPosition = 1 +
-            (($round + ($firstDealerPosition - 1)) % count($basicPlayerInfo));
-
-        foreach ($basicPlayerInfo as $playerId => $player) {
-            if ($player['player_no'] == $actualDealerPosition) {
-                return $playerId;
-            }
-        }
-
-        throw new feException(sprintf(self::_("Incorrect calculation of dealer: %d"), $actualDealerPosition));
-    }
 
     // Return the list of valid playable cards in the given player's hand
     function getPlayableCards($playerId) {
         $cardsInHand = $this->cards->getPlayerHand($playerId);
-        $ledSuit = self::getGameStateValue("ledSuit");
-        if ($ledSuit == null) {
+        $ledSuit = self::getGameStateValue('ledSuit');
+        if ($ledSuit == 0) {
             // All cards in the hand are valid to play
             return $cardsInHand;
         }
@@ -793,6 +367,23 @@ class Bouncers extends Table {
         return $result;
     }
 
+    function getScorePile($player_id) {
+
+        // TODO
+
+        // Cards with a lower location_arg were collected earlier
+        $score_pile_cards = $this->deck->getCardsInLocation("scorepile_{$player_id}");
+
+        if ($this->getGameStateValue('specialBouncerAbilities')) {
+        } else {
+        }
+
+        return [
+            'score' => 0,
+            'score_pile' => $score_pile;
+        ]
+    }
+
 /************** End Other helper functions ****************/
 
 
@@ -805,67 +396,6 @@ class Bouncers extends Table {
         (note: each method below correspond to an input method in bouncers.action.php)
     */
 
-    function submitBid($card_ids, $decrev) {
-        self::checkAction("submitBid");
-
-        // Check that the cards are actually in the current user's hands.
-        $player_id = self::getCurrentPlayerId();
-
-        if (count($card_ids) != 3) {
-            throw new feException(self::_("You must bid exactly 3 cards"));
-        }
-
-        $cards = $this->cards->getCards($card_ids);
-
-        if (count($cards) != 3)
-            throw new feException(self::_("Some of these cards don't exist"));
-
-        // When a player plays a card in front of him on the table:
-        $bidValue = 0;
-        foreach ($cards as $bidCard) {
-            if ($bidCard['location'] != 'hand' || $bidCard['location_arg'] != $player_id)
-                throw new feException(self::_("Some of these cards are not in your hand"));
-
-            $this->cards->moveCard($bidCard['id'], 'bid', $player_id);
-
-            $bidValue += $this->getCardBidValue($bidCard);
-        }
-
-        $bidCards = $this->cards->getCardsInLocation('bid', $player_id);
-
-        // Notify the player so we can make these cards disapear
-        self::notifyPlayer($player_id, "bidCards", "", array(
-            "cards" => $card_ids,
-            "bidValue" => $bidValue
-        ));
-
-        $this->persistPlayerBid($player_id, $bidValue);
-        $this->declareOrReveal($decrev);
-
-        $this->gamestate->setPlayerNonMultiactive($player_id, "biddingDone");
-    }
-
-    function declareOrReveal($declareOrReveal) {
-        if ($declareOrReveal < 0 || $declareOrReveal > 2) {
-            throw new feException(sprintf(self::_("Invalid declare or reveal: %d"), $declareOrReveal));
-        }
-
-        // Check that the cards are actually in the current user's hands.
-        $playerId = self::getCurrentPlayerId();
-
-        $this->persistPlayerDeclareRevealRequest($playerId, $declareOrReveal);
-    }
-
-    // Undo the bid action
-    function undoBid() {
-        $this->gamestate->checkPossibleAction('undoBid');
-        $player_id = $this->getCurrentPlayerId();
-        $this->cards->moveAllCardsInLocation('bid', 'hand', $player_id, $player_id);
-        $this->undoPlayerBid($player_id);
-        $this->undoPlayerDeclareOrReveal($player_id);
-        $this->gamestate->setPlayersMultiactive(array($player_id), 'error', false);
-    }
-
     // Play a card from the active player's hand
     function playCard($card_id) {
         $player_id = self::getActivePlayerId();
@@ -874,45 +404,25 @@ class Bouncers extends Table {
 
     // Play a card from player hand
     function playCardFromPlayer($card_id, $player_id) {
-        self::checkAction("playCard");
+        self::checkAction('playCard');
 
-        // Get all cards in player hand
-        // (note: we must get ALL cards in player's hand in order to check if the card played is correct)
+        $current_card = $this->deck->getCard($card_id);
 
-        $playerhand = $this->cards->getPlayerHand($player_id);
-
-        // Returns the 'bottom' card of the location
-        $firstPlayedSuit = self::getGameStateValue("ledSuit");
-        $firstCardOfTrick = $firstPlayedSuit == -1;
-
-        // Check that the card is in this hand
-        $cardIsInPlayerHand = false;
-        $currentCard = null;
-        $atLeastOneCardOfCurrentTrickSuit = false;
-        foreach ($playerhand as $card) {
-            if ($card['id'] == $card_id) {
-                $cardIsInPlayerHand = true;
-                $currentCard = $card;
-            }
-
-            if ($card['type'] == $firstPlayedSuit) {
-                $atLeastOneCardOfCurrentTrickSuit = true;
-            }
-        }
-        if (!$cardIsInPlayerHand) {
-            throw new feException(self::_("This card is not in your hand"));
+        // Sanity check. A more thorough check is done later.
+        if ($current_card['location'] != 'hand' || $current_card['location_arg'] != $player_id) {
+            throw new BgaUserException(self::_('You do not have this card'));
         }
 
-        if ($firstCardOfTrick) {
-            $this->setCurrentTrickSuit($currentCard['type']);
-            // If this is the first card of the trick, any cards can be played
-        } else if ($atLeastOneCardOfCurrentTrickSuit &&
-                   $currentCard['type'] != $firstPlayedSuit) {
-            throw new feException(sprintf(self::_("You must play a %s"), $this->getSuitName($firstPlayedSuit)), true);
+        $playable_cards = $this->getPlayableCards($player_id);
+
+        if (!array_key_exists($card_id, $playable_cards)) {
+            throw new BgaUserException(self::_('You cannot play this card'));
         }
 
         // Checks are done! now we can play our card
         $this->cards->moveCard($card_id, 'cardsontable', $player_id);
+        if (self::getGameStateValue('ledSuit') == 0)
+            self::setGameStateValue('ledSuit', $current_card['type']);
 
         // And notify
         self::notifyAllPlayers('playCard', clienttranslate('${player_name} plays ${rank_displayed} ${suit_displayed}'), array(
@@ -940,16 +450,23 @@ class Bouncers extends Table {
         $cardsOnTable = $this->cards->getCardsInLocation('cardsontable');
 
         if (count($cardsOnTable) != $this->getPlayerCount()) {
-            throw new feException(self::_("Invalid trick card count"));
+            throw new feException(self::_('Invalid trick card count'));
         }
+
+        $next_player_table = $this->getNextPlayerTable();
+        $third_player = $this->getActivePlayerId();
+        $first_player = $next_player_table[$third_player];
+        $second_player = $next_player_table[$first_player];
+        $value_modifiers = [
+            $first_player => 0.1,
+            $second_player => 0.2,
+            $third_player => 0.3,
+        ];
 
         $bestValue = 0;
         $bestValueCard = null;
-
-        $ledSuit = self::getGameStateValue("ledSuit");
-
         foreach ($cardsOnTable as $card) {
-            $cardVal = $this->getCardValue($card, $ledSuit);
+            $cardVal = $card['type_arg'] + $value_modifiers[$card['location_arg']];
             if ($bestValue <= $cardVal) {
                 $bestValue = $cardVal;
                 $bestValueCard = $card;
@@ -974,30 +491,22 @@ class Bouncers extends Table {
         $this->gamestate->nextState();
     }
 
-    function stNewRound() {
-        $this->setDealer($this->getRoundDealer());
-        $dealer = $this->getDealer();
-        $firstPlayer = $this->getPlayerAfter($dealer);
-        $this->setCurrentPlayer($firstPlayer);
-        $this->gamestate->nextState();
-    }
-
     function stNewHand() {
 
-        $this->incrementHandCount();
+        self::incStat(1, 'handNum');
+        $this->incGameStateValue('handNum', 1);
 
-        $handCount = $this->getHandCount();
+        $handCount = $this->getGameStateValue('handNum');
 
-		$dealer = $this->getDealer();
-		$firstPlayer = $this->getPlayerAfter($dealer);
-		self::notifyAllPlayers('newRound', clienttranslate('Starting hand ${hand_num}'), array(
-			'dealer' => $dealer,
-			'hand_num' => $this->getHandCount(),
-			'firstPlayer' => $firstPlayer
-		));
+        $this->gamestate->changeActivePlayer($this->getGameStateValue('firstPlayer'));
+
+        self::notifyAllPlayers('newRound', clienttranslate('Starting hand ${hand_num}'), array(
+            'hand_num' => $handCount,
+        ));
 
         // Take back all cards (from any location => null) to deck
-        $this->cards->moveAllCardsInLocation(null, "deck");
+        $this->cards->moveAllCardsInLocation('scorepile', 'points');
+        // TODO: Take back cards from score piles
         $this->cards->shuffle('deck');
         $this->cards->shuffle('points');
         // Deal cards to each players
@@ -1008,7 +517,6 @@ class Bouncers extends Table {
             $cardsToDeal = 13;
         }
         $players = self::loadPlayersBasicInfos();
-        $dealer = $this->getDealer();
         $firstPlayer = $this->getPlayerAfter($dealer);
         $this->setCurrentPlayer($firstPlayer);
         foreach ($players as $player_id => $player) {
@@ -1016,16 +524,8 @@ class Bouncers extends Table {
             // Notify player about his cards
             self::notifyPlayer($player_id, 'newHand', '', array(
               'cards' => $cards,
-              'dealer' => $dealer,
-              'firstPlayer' => $firstPlayer,
               'hand_num' => $handCount));
         }
-        self::notifyAllPlayers('newHandState', '', array(
-              'dealer' => $dealer,
-              'firstPlayer' => $firstPlayer,
-              'hand_num' => $handCount,
-        ));
-
         $this->gamestate->nextState();
     }
 
@@ -1035,33 +535,25 @@ class Bouncers extends Table {
             $winningCard = $this->getTrickWinner();
             $winningPlayer = $winningCard['location_arg'];
 
-            // Winning tricks statistics
-            self::incStat(1, "tricksWon", $winningPlayer);
-
             // Active this player => he's the one who starts the next trick
             $this->gamestate->changeActivePlayer($winningPlayer);
             $this->setCurrentPlayer($winningPlayer);
 
-            // Move all cards to "cardswon" of the given player
-            $this->cards->moveAllCardsInLocation('cardsontable', 'cardswon', null, $winningPlayer);
+            // Put cards back in deck
+            $this->cards->moveAllCardsInLocation('cardsontable', 'deck');
 
-            $trickCounts = $this->getTrickCounts();
-
-            // We need to know if the player who won is the declare/reveal
-            // player so we can update the UI for their trick win information
-            $declareReveal = $this->getDeclareOrRevealInfo();
-            $decRevPlayerId = $declareReveal['playerId'];
+            // Give point card to player
+            $current_point_card = $this->getCardOnTop('points');
+            $this->cards->insertCardOnExtremePosition($current_point_card['id'], "scorepile_${winningPlayer}", true);
 
             // Notify
             $players = self::loadPlayersBasicInfos();
             self::notifyAllPlayers('trickWin', clienttranslate('${player_name} wins the trick'), array(
                     'player_id' => $winningPlayer,
                     'player_name' => $players[$winningPlayer]['player_name'],
-                    'decRevPlayerId' => $decRevPlayerId,
-                    'playerTrickCounts' => $trickCounts
             ));
 
-            $this->clearCurrentTrickSuit();
+            self::setGameStateValue("ledSuit", 0);
 
             if ($this->cards->countCardInLocation('hand') == 0) {
                 // End of the hand
@@ -1097,8 +589,6 @@ class Bouncers extends Table {
     function stEndHand() {
 
         $handScoreInfo = $this->generateScoreInfo();
-        $madeBidCount = $handScoreInfo['correctBidCount'];
-        $this->setHandWinnerCount($madeBidCount);
 
         // Record statistics for how many hands had 0/1/2/3/4 winners
         self::incStat(1, "total{$madeBidCount}WinnerHands");
@@ -1111,21 +601,6 @@ class Bouncers extends Table {
         foreach ($handScoreInfo['currentScore'] as $playerId => $currentScore) {
             if ($currentScore + $handScoreInfo['total'][$playerId] >= 100) {
                 $countPlayersExceeded100++;
-            }
-        }
-
-        $decRev = $this->getDeclareOrRevealInfo();
-        foreach ($handScoreInfo['bonus'] as $playerId => $bonus) {
-            if ($bonus > 0) {
-                // Made the bid
-                self::incStat(1, "successBidCount", $playerId);
-                if ($playerId == $decRev['playerId']) {
-                    if ($decRev['decRev'] == 2) {
-                        self::incStat(1, "revealSuccess", $playerId);
-                    } else if ($decRev['decRev'] == 1) {
-                        self::incStat(1, "declareSuccess", $playerId);
-                    }
-                }
             }
         }
 
@@ -1159,147 +634,34 @@ class Bouncers extends Table {
         self::notifyAllPlayers("newScores", '', array('newScores' => $newScores, 'gameScores' => $gameScores));
 
         // Test if this is the end of the round
-		// Display the score for the hand
-		$handScoreInfo = $this->generateScoreInfo();
-		$scoreTable = $this->createHandScoringTable($handScoreInfo);
-
-		if ($this->getHandCount() == 9) {
-			$this->notifyScore($scoreTable, clienttranslate('Final Score'));
-			$this->finalizeGameEndState();
-			$this->gamestate->nextState("gameEnd");
-			return;
-		}
-
-		$this->notifyScore($scoreTable, clienttranslate('Hand Score'));
-
-		$this->clearAllDeclareReveal();
-		$this->clearBids();
-
-		$this->rotateDealer();
-		$this->gamestate->nextState("newHand");
-    }
-
-    function stEndRound() {
+        // Display the score for the hand
         $handScoreInfo = $this->generateScoreInfo();
-        $roundScoreInfo = $this->generateRoundScoreInfo();
+        $scoreTable = $this->createHandScoringTable($handScoreInfo);
 
-        // Display Round score
-        $scoreTable = $this->createRoundScoringTable($handScoreInfo, $roundScoreInfo);
-        $this->notifyScore($scoreTable, clienttranslate('End of Round Score'));
-
-        $this->clearAllDeclareReveal();
-        $this->clearBids();
-
-        // Test if this is the end of the game
-        $round = $this->getCurrentRound();
-
-        $isEndOfGame = false;
-        if ($this->doesGamePlayToThreeRoundWins()) {
-            // I'm arbitrarily deciding that each round is worth exactly
-            // 100 points here so that the scores between game variants are
-            // somewhat similar. Ties are of course broken by total score
-            $roundWins = $this->dbGetRoundWins();
-            foreach ($roundWins as $playerId => $winCount) {
-                $this->dbSetScore($playerId, $winCount * 100);
-                if ($winCount == 3) {
-                    $isEndOfGame = true;
-                }
-            }
-        } else {
-            // If we don't play to 3 rounds, that means we play exactly 3 rounds
-            $isEndOfGame = $round == 2;
-        }
-
-        if ($isEndOfGame) {
-            // End of the game
+        // TODO: Check if max score was reached
+        if (false) {
+            $this->notifyScore($scoreTable, clienttranslate('Final Score'));
             $this->finalizeGameEndState();
             $this->gamestate->nextState("gameEnd");
             return;
-        } else {
-            $nextRound = $round + 1;
-            $this->setCurrentRound($round + 1);
-            $this->clearPreviousWinnerCount();
-            $this->gamestate->nextState("newRound");
         }
+
+        $this->notifyScore($scoreTable, clienttranslate('Hand Score'));
+
+        // Alternate first player
+        self::setGameStateValue('firstPlayer', 
+            self::getPlayerAfter(self::getGameStateValue('firstPlayer')));
+        $this->gamestate->nextState("newHand");
     }
 
 /************** Game state helper functions ****************/
-
-    // Using all the player's declare/reveal requests, determine which player
-    // 'wins' the declare/reveal
-    function assignDeclareRevealPlayer() {
-        $result = $this->getPlayerDeclareRevealRequests();
-
-        $dealer = $this->getDealer();
-        $firstPlayer = $this->getPlayerAfter($dealer);
-
-        // This returns a table with an extra key at 0, which is the first
-        // player to play
-        $nextPlayerTable = $this->getNextPlayerTable();
-
-        $firstPlayerToDeclare = 0;
-        $firstPlayerToReveal = 0;
-
-        $checkPlayer = $firstPlayer;
-        for ($i = 0; $i < count($nextPlayerTable) - 1; $i++) {
-            $decRevVal = intval($result[$checkPlayer]['decrev']);
-            if ($decRevVal == 2) {
-                $firstPlayerToReveal = $checkPlayer;
-                break;
-            } else if ($firstPlayerToDeclare == 0 &&
-                       $firstPlayerToReveal == 0 &&
-                       $decRevVal == 1) {
-                $firstPlayerToDeclare = $checkPlayer;
-            }
-            $checkPlayer = $this->getPlayerAfter($checkPlayer);
-        }
-
-        if ($firstPlayerToReveal != 0) {
-            $this->setDeclareReveal($firstPlayerToReveal, 2);
-        } else if ($firstPlayerToDeclare != 0) {
-            $this->setDeclareReveal($firstPlayerToDeclare, 1);
-        }
-
-        // Inform everyone who attempted a declare or reveal
-        foreach ($result as $playerId => $row) {
-            $decRevRequest = intval($row['decrev']);
-            if ($decRevRequest <= 0) {
-                continue;
-            }
-            if ($decRevRequest == 1) {
-                if ($firstPlayerToDeclare != $playerId || $firstPlayerToReveal != 0) {
-                    self::notifyAllPlayers('declareRevealResult', clienttranslate('${player_name} attempted to declare their bid'), array(
-                        'player_name' => $row['name']
-                    ));
-                } else if ($firstPlayerToDeclare == $playerId && $firstPlayerToReveal == 0) {
-                    self::notifyAllPlayers('declareRevealResult', clienttranslate('${player_name} declared his bid'), array(
-                        'player_name' => $row['name']
-                    ));
-                }
-            } else {
-                if ($firstPlayerToReveal == $playerId) {
-                    self::notifyAllPlayers('declareRevealResult', clienttranslate('${player_name} revealed their hand and bid'), array(
-                        'player_name' => $row['name']
-                    ));
-                } else {
-                    self::notifyAllPlayers('declareRevealResult', clienttranslate('${player_name} attempted to reveal'), array(
-                        'player_name' => $row['name']
-                    ));
-                }
-            }
-        }
-    }
 
     function finalizeGameEndState() {
         // This will get the scores from Round 3
         $roundScoreInfo = $this->generateRoundScoreInfo();
 
-        $roundScores = $this->getCurrentRoundScores();
         $gameScores = $this->dbGetScores();
         self::notifyAllPlayers("newScores", '', array('newScores' => $roundScores, 'gameScores' => $gameScores));
-
-        // Calculate statistics
-        $this->finalizeStatistics();
     }
 
     /**
@@ -1349,7 +711,6 @@ class Bouncers extends Table {
         $playerBidsStr = [];
         $playerNames = [];
         $roundScore = [];
-        $tricksWon = $this->getTrickCounts();
         $round = $this->getCurrentRound();
         foreach ($players as $player_id => $player) {
             $bid = $this->getPlayerBid($player_id);
@@ -1357,17 +718,11 @@ class Bouncers extends Table {
             $playerNames[$player_id] = $player['player_name'];
             $roundScore[$player_id] = $this->dbGetRoundScore($player_id, $round);
         }
-        $decRev = $this->getDeclareOrRevealInfo();
-        $decRevPlayer = null;
-        $decRevVal = $decRev['decRev'];
-        if ($decRevVal != 0) {
-            $decRevPlayer = $decRev['playerId'];
-        }
         return $this->generateScoreInfoHelper($playerNames, $playerBids,
-            $tricksWon, $decRevVal, $decRevPlayer, $roundScore);
+            $decRevVal, $decRevPlayer, $roundScore);
     }
 
-    function generateScoreInfoHelper($playerNames, $bid, $tricks, $decRev,
+    function generateScoreInfoHelper($playerNames, $bid, $decRev,
             $decRevPlayer, $currentScores) {
         $result = [];
         $total = [];
@@ -1376,11 +731,6 @@ class Bouncers extends Table {
             $result['name'][$playerId] = $name;
         }
         $madeBid = [];
-        $result['tricks'] = [];
-        foreach ($tricks as $playerId => $trickCount) {
-            $result['tricks'][$playerId] = $trickCount;
-            $total[$playerId] = $trickCount;
-        }
         $result['total'] = $total;
         $result['currentScore'] = [];
         foreach ($currentScores as $playerId => $score) {
@@ -1421,14 +771,6 @@ class Bouncers extends Table {
             $bonusRow[] = $scoreInfo['bonus'][$player_id];
         }
         $table[] = $bonusRow;
-
-        if (array_key_exists("decrev", $scoreInfo)) {
-            $decRevRow = array(clienttranslate("Declare/Reveal"));
-            foreach ($players as $player_id => $player) {
-                $decRevRow[] = $scoreInfo['decrev'][$player_id];
-            }
-            $table[] = $decRevRow;
-        }
 
         $totalRow = array(clienttranslate("Total"));
         foreach ($players as $player_id => $player) {
@@ -1588,48 +930,6 @@ class Bouncers extends Table {
         return $emptyRow;
     }
 
-    // Calculates the statistics and records them
-    function finalizeStatistics() {
-        $handCount = self::getStat("handCount");
-        $totalTrickCount = $handCount * 9;
-        $roundCount = $this->getCurrentRound() + 1;
-        $players = self::loadPlayersBasicInfos();
-        foreach ($players as $playerId => $player) {
-            // trickWinPercentage
-            $tricksTaken = self::getStat("tricksWon", $playerId);
-            $trickWinPerc = round(($tricksTaken / $totalTrickCount) * 100, 1);
-            self::setStat($trickWinPerc, "trickWinPercentage", $playerId);
-
-            if ($this->doesScoringVariantUseRounds()) {
-                // roundWinPercentage
-                $roundsWon = self::getStat("roundsWon", $playerId);
-                $roundWinPerc = round(($roundsWon / $roundCount) * 100, 1);
-                self::setStat($roundWinPerc, "roundWinPercentage", $playerId);
-            }
-
-            // declareSuccessPercentage
-            $declares = self::getStat("declareCount", $playerId);
-            $declareSuccess = self::getStat("declareSuccess", $playerId);
-            if ($declares != 0) {
-                $declareWinPerc = round(($declareSuccess / $declares) * 100, 1);
-                self::setStat($declareWinPerc, "declareSuccessPercentage", $playerId);
-            }
-
-            // revealSuccessPercentage
-            $reveals = self::getStat("revealCount", $playerId);
-            $revealSuccess = self::getStat("revealSuccess", $playerId);
-            if ($reveals != 0) {
-                $revealWinPerc = round(($revealSuccess / $reveals) * 100, 1);
-                self::setStat($revealWinPerc, "revealSuccessPercentage", $playerId);
-            }
-
-            // successBidPercentage
-            $successfulBids = self::getStat("successBidCount", $playerId);
-            $successBidPerc = round(($successfulBids / $handCount) * 100, 1);
-            self::setStat($successBidPerc, "successBidPercentage", $playerId);
-        }
-    }
-
 /************** End Game state helper functions ****************/
 
 //////////////////////////////////////////////////////////////////////////////
@@ -1647,21 +947,7 @@ class Bouncers extends Table {
     function zombieTurn($state, $activePlayer) {
         $statename = $state['name'];
 
-        if ($statename == 'bidding') {
-            // Bid a random 3 cards
-            $this->cards->moveAllCardsInLocation('hand', 'zombiehand', $activePlayer, $activePlayer);
-            $this->cards->shuffle('zombiehand');
-            $bidCards = $this->cards->pickCards(3, 'zombiehand', $activePlayer);
-            $bidValue = 0;
-            foreach ($bidCards as $bidCard) {
-                $this->cards->moveCard($bidCard['id'], 'bid', $activePlayer);
-                $bidValue += $this->getCardBidValue($bidCard);
-            }
-            $this->cards->moveAllCardsInLocation('zombiehand', 'hand', null, $activePlayer);
-            $this->persistPlayerBid($activePlayer, $bidValue);
-            $this->persistPlayerDeclareRevealRequest($activePlayer, 0);
-            $this->gamestate->setPlayerNonMultiactive($activePlayer, "biddingDone");
-        } else if ($statename == 'playerTurn') {
+        if ($statename == 'playerTurn') {
             // Play a card
             $playableCards = $this->getPlayableCards($activePlayer);
             $randomCard = bga_rand(0, count($playableCards) - 1);

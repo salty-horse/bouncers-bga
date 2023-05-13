@@ -32,86 +32,26 @@
 //   !! It is not a good idea to modify this file when a game is running !!
 
 
-$stats_type = array(
+$stats_type = [
 
     // Statistics global to table
-    "table" => array(
-
-        "handCount" => array("id"=> 10,
-                             "name" => totranslate("Number of hands"),
-                             "type" => "int"),
-
-        "total4WinnerHands" => array("id" => 15,
-                                     "name" => totranslate("Four winner hands"),
-                                     "type" => "int"),
-        "total3WinnerHands" => array("id" => 11,
-                                     "name" => totranslate("Three winner hands"),
-                                     "type" => "int"),
-        "total2WinnerHands" => array("id" => 12,
-                                     "name" => totranslate("Two winner hands"),
-                                     "type" => "int"),
-        "total1WinnerHands" => array("id" => 13,
-                                     "name" => totranslate("One winner hands"),
-                                     "type" => "int"),
-        "total0WinnerHands" => array("id" => 14,
-                                     "name" => totranslate("No winner hands"),
-                                     "type" => "int")
-
-    ),
+    'table' => [
+    ],
 
     // Statistics existing for each player
-    "player" => array(
+    'player' => [
+        'tricksWon' => [
+            'id' => 10,
+            'name' => totranslate('Tricks won'),
+            'type' => 'int'
+        ],
 
-        "tricksWon" => array("id" => 10,
-                             "name" => totranslate("Tricks won"),
-                             "type" => "int"),
-
-        "trickWinPercentage" => array("id" => 11,
-                                      "name" => totranslate("Trick win %"),
-                                      "type" => "float"),
-
-        "successBidCount" => array("id" => 12,
-                                   "name" => totranslate("Successful bids"),
-                                   "type" => "int"),
-
-        "successBidPercentage" => array("id" => 13,
-                                        "name" => totranslate("Bid win %"),
-                                        "type" => "float"),
-
-        "roundsWon" => array("id" => 14,
-                             "name" => totranslate("Rounds won"),
-                             "type" => "int"),
-
-        "roundWinPercentage" => array("id" => 15,
-                                      "name" => totranslate("Round win %"),
-                                      "type" => "float"),
-
-        "declareCount" => array("id" => 16,
-                                "name" => totranslate("Declares"),
-                                "type" => "int"),
-
-        "declareSuccess" => array("id" => 17,
-                                  "name" => totranslate("Successful declares"),
-                                  "type" => "int"),
-
-        "declareSuccessPercentage" => array("id" => 18,
-                                            "name" => totranslate("Successful declare %"),
-                                            "type" => "float"),
-
-        "revealCount" => array("id" => 19,
-                               "name" => totranslate("Reveals"),
-                               "type" => "int"),
-
-        "revealSuccess" => array("id" => 20,
-                                 "name" => totranslate("Successful reveals"),
-                                 "type" => "int"),
-
-        "revealSuccessPercentage" => array("id" => 21,
-                                           "name" => totranslate("Successful reveal %"),
-                                           "type" => "float")
-
-    )
-
-);
+        'trickWinPercentage' => [
+            'id' => 11,
+            'name' => totranslate('Trick win %'),
+            'type' => 'float'
+        ],
+    ]
+];
 
 

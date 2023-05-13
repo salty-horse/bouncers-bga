@@ -57,7 +57,6 @@ define('STATE_NEW_HAND', 2);
 define('STATE_PLAYER_TURN', 3);
 define('STATE_NEXT_PLAYER', 4);
 define('STATE_END_HAND', 5);
-define('STATE_END_ROUND', 6);
 define('STATE_END_GAME', 99);
 }
 
@@ -69,22 +68,10 @@ $machinestates = [
             'description' => clienttranslate('Game setup'),
             'type' => 'manager',
             'action' => 'stGameSetup',
-            'transitions' => ['' => NEW_ROUND]
+            'transitions' => ['' => NEW_HAND]
     ],
     
     // stGameSetup manages the state of the game
-    
-    // New Round
-    NEW_ROUND => [
-            'name' => 'newRound',
-            'description' => '',
-            'type' => 'game',
-            'action' => 'stNewRound',
-            'updateGameProgression' => true,
-            'transitions' => ['' => STATE_NEW_HAND]
-    ],
-    
-    // New Hand (each game will have an arbitrary number of rounds / hands)
     
     STATE_NEW_HAND => [
             'name' => 'newHand',
@@ -127,21 +114,8 @@ $machinestates = [
             'action' => 'stEndHand',
             'updateGameProgression' => true,
             'transitions' => [
-                'endRound' => STATE_END_ROUND,
                 'gameEnd' => STATE_END_GAME,
                 'newHand' => STATE_NEW_HAND
-            ]
-    ],
-    
-    STATE_END_ROUND => [
-            'name' => 'endRound',
-            'description' => '',
-            'type' => 'game',
-            'action' => 'stEndRound',
-            'updateGameProgression' => true,
-            'transitions' => [
-                'newRound' => STATE_NEW_ROUND,
-                'gameEnd' => STATE_END_GAME
             ]
     ],
     

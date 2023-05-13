@@ -33,14 +33,10 @@ $this->suits = array(
                'pluralname' => clienttranslate('Spades'),
                'nametr' => self::_('spade'),
                'symbol' => clienttranslate('♠')),
-    3 => array('name' => clienttranslate('heart'),
-               'pluralname' => clienttranslate('Hearts'),
-               'nametr' => self::_('heart'),
-               'symbol' => clienttranslate('♥'))
 );
 
 $this->rank_label = array(
-    2 =>'2',
+    2 => '2',
     3 => '3',
     4 => '4',
     5 => '5',
@@ -53,20 +49,4 @@ $this->rank_label = array(
     12 => clienttranslate('Q'),
     13 => clienttranslate('K'),
     14 => clienttranslate('A')
-);
-
-$this->rank_name = array(
-    2 =>'2',
-    3 => '3',
-    4 => '4',
-    5 => '5',
-    6 => '6',
-    7 => '7',
-    8 => '8',
-    9 => '9',
-    10 => '10',
-    11 => clienttranslate('Jack'),
-    12 => clienttranslate('Queen'),
-    13 => clienttranslate('King'),
-    14 => clienttranslate('Ace')
 );

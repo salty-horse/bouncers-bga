@@ -1221,7 +1221,6 @@ function (dojo, declare, domStyle, lang, attr) {
         setupNotifications: function() {
             dojo.subscribe('newRound', this, "notif_newRound");
             dojo.subscribe('newHand', this, "notif_newHand");
-            dojo.subscribe('newHandState', this, "notif_newHandState");
             dojo.subscribe('playCard', this, "notif_playCard");
             this.notifqueue.setSynchronous('playCard', (this.playCardDuration));
             dojo.subscribe('currentPlayer', this, "notif_currentPlayer");
