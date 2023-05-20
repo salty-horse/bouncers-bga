@@ -25,12 +25,12 @@
  *
  */
 
-  require_once( APP_BASE_PATH."view/common/game.view.php" );
+  require_once( APP_BASE_PATH.'view/common/game.view.php' );
 
   class view_bouncers_bouncers extends game_view
   {
     function getGameName() {
-        return "bouncers";
+        return 'bouncers';
     }
   	function build_page($viewArgs)
   	{
@@ -45,33 +45,21 @@
         // Arrange players so that I am on south
         $player_to_dir = $this->game->getPlayersToDirection();
 
-        $this->page->begin_block("bouncers_bouncers", "player");
+        $this->page->begin_block('bouncers_bouncers', 'player');
         foreach ($player_to_dir as $player_id => $dir) {
-            $this->page->insert_block("player", array("PLAYER_ID" => $player_id,
-                                                      "PLAYER_NAME" => $players[$player_id]['player_name'],
-                                                      "PLAYER_COLOR" => $players[$player_id]['player_color'],
-                                                      "DIR" => $dir));
+            $this->page->insert_block('player', array('PLAYER_ID' => $player_id,
+                                                      'PLAYER_NAME' => $players[$player_id]['player_name'],
+                                                      'PLAYER_COLOR' => $players[$player_id]['player_color'],
+                                                      'DIR' => $dir));
         }
 
-        $this->tpl['MY_HAND'] = self::_("My hand");
+        $this->tpl['MY_HAND'] = self::_('My hand');
+        $this->tpl['ROUND_LABEL'] = self::_('Hand ');
+        $this->tpl['TRUMP_LABEL'] = self::_('Trump Suit:');
+        $this->tpl['TRICKS_WON_LABEL'] = self::_('Tricks Won: ');
+        $this->tpl['MY_HAND_LABEL'] = self::_('My Hand');
 
-        // Translateable strings
-        if ($this->game->doesScoringVariantUseRounds()) {
-            $this->tpl['ROUND_LABEL'] = self::_("Round ");
-        } else {
-            $this->tpl['ROUND_LABEL'] = self::_("Hand ");
-        }
-        $this->tpl['DECREV_PLAYER_LABEL'] = self::_("Declaring/Revealing Player: ");
-        $this->tpl['TRUMP_LABEL'] = self::_("Trump Suit:");
-        $this->tpl['DECLARED_BID_LABEL'] = self::_("Declared Bid: ");
-        $this->tpl['MY_BID_LABEL'] = self::_("My Bid: ");
-        $this->tpl['TRICKS_WON_LABEL'] = self::_("Tricks Won: ");
-        $this->tpl['REVEALED_HAND_LABEL'] = self::_("Revealed Hand:");
-        $this->tpl['MY_HAND_LABEL'] = self::_("My Hand");
-        $this->tpl['REVEALED_LABEL'] = self::_("Revealed");
-        $this->tpl['DECLARED_LABEL'] = self::_("Declared");
-
-        $this->tpl['NONE'] = self::_("None");
+        $this->tpl['NONE'] = self::_('None');
 
         /*********** Do not change anything below this line  ************/
   	}

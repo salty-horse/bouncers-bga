@@ -70,10 +70,6 @@ class Bouncers extends Table {
         $player_id = self::getActivePlayerId();
         self::setGameStateInitialValue('firstPlayer', $player_id);
 
-        // Init game statistics
-        self::initStat('player', 'tricksWon', 0);
-        self::initStat('player', 'trickWinPercentage', 0);
-
         // Create cards
         $this->createCards();
 
@@ -83,7 +79,7 @@ class Bouncers extends Table {
     /************* Initialization helper functions ***************/
 
     function initializePlayers($players) {
-        $sql = 'DELETE FROM player WHERE 1 ';
+        $sql = 'DELETE FROM player WHERE 1';
         self::DbQuery($sql);
 
         // Set the colors of the players with HTML color code
@@ -156,7 +152,7 @@ class Bouncers extends Table {
         $result['cardsontable'] = $this->cards->getCardsInLocation('cardsontable');
 
         // Point card
-        $result['point_card'] = $this->getCardOnTop('points');
+        $result['point_card'] = $this->cards->getCardOnTop('points');
         // TODO: Upcoming cards
 
         $result['gameScores'] = $this->dbGetScores();
@@ -181,6 +177,8 @@ class Bouncers extends Table {
     */
     function getGameProgression() {
         // Game progression: get player minimum score
+        return 1; // TODO
+        /*
         $maxScore = 0;
         foreach ($currentRoundScores as $playerId => $score) {
             $maxScore = max($maxScore, $score);
@@ -190,6 +188,7 @@ class Bouncers extends Table {
         $roundPercentage = (int) (100 / $playerCount);
         $extra = 100 - ($playerCount * $roundPercentage);
         return ($roundPercentage * $this->getCurrentRound()) + min($roundPercentage, ($maxScore / $playerCount)) + $extra;
+         */
     }
 
 
@@ -256,24 +255,6 @@ class Bouncers extends Table {
             return null;
         }
         return $scoreTable;
-    }
-
-    // Persist the player's bid to the players table
-    function persistPlayerBid($playerId, $bid) {
-        $sql = "UPDATE player SET player_bid=$bid WHERE player_id='$playerId'";
-        $this->DbQuery($sql);
-    }
-
-    // Clear all player bids
-    function undoPlayerBid($playerId) {
-        $sql = "UPDATE player SET player_bid=0 WHERE player_id='$playerId'";
-        $this->DbQuery($sql);
-    }
-
-    // Clear all player bids
-    function clearBids() {
-        $sql = "UPDATE player SET player_bid=0 WHERE 1";
-        $this->DbQuery($sql);
     }
 
     // Get the color of a particular player
@@ -598,10 +579,7 @@ class Bouncers extends Table {
 
     function stNewHand() {
 
-        self::incStat(1, 'handNum');
-        $this->incGameStateValue('handNum', 1);
-
-        $handCount = $this->getGameStateValue('handNum');
+        $handCount = $this->incGameStateValue('handNum', 1);
 
         $this->gamestate->changeActivePlayer($this->getGameStateValue('firstPlayer'));
 
@@ -616,14 +594,7 @@ class Bouncers extends Table {
         $this->cards->shuffle('points');
         // Deal cards to each players
         // Create deck, shuffle it and give initial cards
-        if ($this->getPlayerCount() == 3) {
-            $cardsToDeal = 12;
-        } else {
-            $cardsToDeal = 13;
-        }
         $players = self::loadPlayersBasicInfos();
-        $firstPlayer = $this->getPlayerAfter($dealer);
-        $this->setCurrentPlayer($firstPlayer);
         foreach ($players as $player_id => $player) {
             $cards = $this->cards->pickCards(13, 'deck', $player_id);
             // Notify player about his cards
@@ -694,9 +665,6 @@ class Bouncers extends Table {
     function stEndHand() {
 
         $handScoreInfo = $this->generateScoreInfo();
-
-        // Record statistics for how many hands had 0/1/2/3/4 winners
-        self::incStat(1, "total{$madeBidCount}WinnerHands");
 
         // Count and score points, then end the round / game or go to the next hand.
         $players = self::loadPlayersBasicInfos();
@@ -886,11 +854,7 @@ class Bouncers extends Table {
         // Having a separater between hand total and round total is nice
         $table[] = $this->createEmptyScoringRow();
 
-        if ($this->doesScoringVariantUseRounds()) {
-            $roundScoreRow = array(clienttranslate("Round Score"));
-        } else {
-            $roundScoreRow = array(clienttranslate("Game Score"));
-        }
+        $roundScoreRow = array(clienttranslate("Game Score"));
         foreach ($players as $player_id => $player) {
             $roundScoreRow[] = $scoreInfo['currentScore'][$player_id];
         }
@@ -985,43 +949,6 @@ class Bouncers extends Table {
             $result['gameScore'][$playerId] = $playerGameScoreTotal;
         }
         return $result;
-    }
-
-    /**
-        Given the hand score information and round score information, create a
-        table to display the scores.
-
-        This requires both hand and round score information since the scoring
-        table combines information from the last hand and the round.
-    **/
-    function createRoundScoringTable($handScoreInfo, $roundScoreInfo) {
-
-        $table = $this->createHandScoringTable($handScoreInfo);
-
-        $players = self::loadPlayersBasicInfos();
-        $round = $this->getCurrentRound();
-
-        // Add a blank link to separate the hand information from the round info
-        $table[] = $this->createEmptyScoringRow();
-
-        for ($i = 0; $i < $round + 1; $i++) {
-            $roundName = $i + 1;
-
-            $translatedRoundName = sprintf(clienttranslate("Round %d"), $roundName);
-            $roundScoreRow = array($translatedRoundName);
-            foreach ($players as $player_id => $player) {
-                $roundScore = $roundScoreInfo['roundScore'][$player_id][$i];
-
-                $roundScoreRow[] = $roundScore;
-            }
-            $table[] = $roundScoreRow;
-        }
-        $totalRow = array(clienttranslate("Game Total"));
-        foreach ($players as $player_id => $player) {
-            $totalRow[] = $roundScoreInfo['gameScore'][$player_id];
-        }
-        $table[] = $totalRow;
-        return $table;
     }
 
     function createEmptyScoringRow() {

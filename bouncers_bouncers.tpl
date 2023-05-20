@@ -24,19 +24,6 @@
     See your "view" PHP file to check how to set variables and control blocks
 -->
 <div id="table" class="player_count_{PLAYER_COUNT}">
-    <div id="declarerevealtable">
-        <h3 class="whiteblock">
-            <span id="round_name_container" class="bgann_invisible">
-                <span class="">{ROUND_LABEL} </span>
-                <span id="round_name">1</span>
-            </span>
-            <span id="declaring_revealing_player_container">
-                <span class="">{DECREV_PLAYER_LABEL}</span>
-                <!-- PLAYER_NAME should say none for rounds with no declaring/revealing player -->
-                <span class="" id="decrev_player_name">{NONE}</span>
-            </span>
-        </h3>
-    </div>
     <div id="middleRow">
         <div id="playertables">
 
@@ -62,17 +49,6 @@
                 <div class="bgann_trump_suit" id="trumpSuit">{NONE}</div>
             </div>
         </div>
-        <div id="bids" class="">
-            <div id="declaretable" class="whiteblock bgann_invisible bgann_bid_container">
-                <h3 id="declared_label" class="bgann_decrev_label">{DECLARED_BID_LABEL}<span id="declaredBidValue"></span>
-                </h3>
-                <div id="declaredBid"></div>
-            </div>
-            <div id="revealtable" class="whiteblock bgann_invisible">
-                <h3 id="revealed_label" class="bgann_decrev_label">{REVEALED_HAND_LABEL}</h3>
-                <div id="revealedHand"></div>
-            </div>
-        </div>
     </div>
 </div>
 
@@ -81,18 +57,9 @@
         <div class="bgann_section" style="flex-grow: 1;">
             <div style="width: auto; display: flex">
                 <h3 id="myhandlabel" class="">{MY_HAND_LABEL}</h3>
-                <h3 id="reveal_label" class="bgann_hidden" style="margin-left: 5px;color: red;">({REVEALED_LABEL})</h3>
             </div>
             <div id="myhand"></div>
         </div>
-    </div>
-    <div id="my_bid_container" class="bgann_section whiteblock bgann_bid_container bgann_hidden">
-        <h3>
-            <span class="" style="display: inline-block;">{MY_BID_LABEL}</span>
-            <span id="bidValue"></span>
-            <span id="declare_label" class="bgann_hidden" style="margin-left: 5px;color: red;">({DECLARED_LABEL})</span>
-        </h3>
-        <div id="mybid"></div>
     </div>
 </div>
 

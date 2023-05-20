@@ -40,17 +40,6 @@ $stats_type = [
 
     // Statistics existing for each player
     'player' => [
-        'tricksWon' => [
-            'id' => 10,
-            'name' => totranslate('Tricks won'),
-            'type' => 'int'
-        ],
-
-        'trickWinPercentage' => [
-            'id' => 11,
-            'name' => totranslate('Trick win %'),
-            'type' => 'float'
-        ],
     ]
 ];
 
