@@ -55,11 +55,9 @@
 
         $this->tpl['MY_HAND'] = self::_('My hand');
         $this->tpl['ROUND_LABEL'] = self::_('Hand ');
-        $this->tpl['TRUMP_LABEL'] = self::_('Trump Suit:');
+        $this->tpl['SCORE_CARD_LABEL'] = self::_('Score Card:');
         $this->tpl['TRICKS_WON_LABEL'] = self::_('Tricks Won: ');
         $this->tpl['MY_HAND_LABEL'] = self::_('My Hand');
-
-        $this->tpl['NONE'] = self::_('None');
 
         /*********** Do not change anything below this line  ************/
   	}

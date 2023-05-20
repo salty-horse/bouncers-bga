@@ -47,17 +47,12 @@ function (dojo, declare, domStyle, lang, attr) {
 
             // Globals
             this.shouldGiveCardsToWinner = false;
-            this.autoplay = false;
-
-            // Cached values
-            this.cachedTrump = null;
 
             // Timeouts
             this.trickWinDelay = 500;
             this.winnerTakeDuration = 500;
             this.fadeOutDuration = 500;
             this.playCardDuration = 500;
-            this.animateBidVisibilityDuration = 1500;
             this.playForcedCardDelay = 100;
 
             this.playForcedCardFuture = null;
@@ -89,7 +84,6 @@ function (dojo, declare, domStyle, lang, attr) {
 
             // Remove elements which spectators do not need
             if (this.isSpectator) {
-                this.setNodeHidden("my_bid_container", true);
                 this.setNodeHidden("my_hand_container", true);
             }
 
@@ -99,6 +93,8 @@ function (dojo, declare, domStyle, lang, attr) {
             this.addCardsToStock(this.playerHand, this.gamedatas.hand);
             this.unmarkUnplayableCards();
             this.handlePlayableCards(this.gamedatas.playableCards);
+
+            this.showPointsCard(this.gamedatas.points_card);
 
             // Cards played on table
             for (var i in this.gamedatas.cardsontable) {
@@ -359,7 +355,7 @@ function (dojo, declare, domStyle, lang, attr) {
                 return;
             }
             var playableCardArray = Object.entries(playableCards).map(entry => entry[1])
-            if (playableCardArray.length == 1 || this.autoplay) {
+            if (playableCardArray.length == 1) {
                 var that = this;
                 this.playForcedCardFuture = setTimeout(function() {
                     that.playCard(playableCardArray[0]);
@@ -549,7 +545,6 @@ function (dojo, declare, domStyle, lang, attr) {
             for (var playerId in this.gamedatas.players) {
                 this.updateValueInNode("tricks_" + playerId, "0");
             }
-            this.updateValueInNode("declaredTricksWon", "0");
             this.resetTrickLabels();
         },
 
@@ -710,32 +705,9 @@ function (dojo, declare, domStyle, lang, attr) {
            Other UI utility methods
          */
 
-        // Show the trump suit
-        // Input: [0 = clubs ... 3 = hearts]
-        // If the input is anything other than 0..3, 'None' is displayed
-        showTrump: function(trumpSuit) {
-            this.cachedTrump = trumpSuit;
-            var trumpSuitSpan = dojo.byId("trumpSuit");
-            if (trumpSuit != undefined &&
-                trumpSuit != null &&
-                trumpSuit >= 0 &&
-                trumpSuit < 4) {
-
-                var redSuit = trumpSuit % 2 == 1;
-                trumpSuitSpan.textContent = ["♣", "♦", "♠", "♥"][trumpSuit];
-                dojo.query("#trumpSuit").removeClass("bgabnc_trump_red");
-                dojo.query("#trumpSuit").removeClass("bgabnc_trump_black");
-                dojo.query("#trumpSuit").removeClass("bgabnc_trump_none");
-                dojo.addClass(trumpSuitSpan, redSuit ? "bgabnc_trump_red" : "bgabnc_trump_black")
-                this.highlightTrump(true, trumpSuit);
-            } else {
-                trumpSuitSpan.textContent = _("None");
-                dojo.query("#trumpSuit").removeClass("bgabnc_trump_red");
-                dojo.query("#trumpSuit").removeClass("bgabnc_trump_black");
-                dojo.addClass(trumpSuitSpan, "bgabnc_trump_none")
-
-                this.highlightTrump(false);
-            }
+        showPointsCard: function(value) {
+            let trumpSuitSpan = dojo.byId("bgabnc_pointsCard");
+            trumpSuitSpan.textContent = value;
         },
 
         // Provide a visual indication as to who's action it is
@@ -823,7 +795,6 @@ function (dojo, declare, domStyle, lang, attr) {
         */
 
         setupNotifications: function() {
-            dojo.subscribe('newRound', this, "notif_newRound");
             dojo.subscribe('newHand', this, "notif_newHand");
             dojo.subscribe('playCard', this, "notif_playCard");
             this.notifqueue.setSynchronous('playCard', (this.playCardDuration));
@@ -836,22 +807,6 @@ function (dojo, declare, domStyle, lang, attr) {
 
         // From this point and below, you can write your game notifications handling methods
 
-        // A new round has started
-        notif_newRound: function(notif) {
-            this.showActivePlayer(notif.args.firstPlayer);
-            if (notif.args.round_num) {
-                // if this game uses rounds
-                this.setNodeInvisible("round_name_container", false);
-                this.updateRoundNum(notif.args.round_num);
-            } else if (notif.args.hand_num) {
-                // if this game uses hands
-                this.setNodeInvisible("round_name_container", false);
-                this.updateRoundNum(notif.args.hand_num);
-            }
-            this.showTrump(null);
-            this.clearRoundScores();
-        },
-
         // We received a new full hand of 12 cards.
         // This message is sent to only you
         notif_newHand: function(notif) {
@@ -863,7 +818,8 @@ function (dojo, declare, domStyle, lang, attr) {
             // Just to be sure, clean up any old state
             this.playerHand.removeAll();
             this.clearTricksWon();
-            this.setNodeHidden("my_bid_container", true);
+
+            this.showPointsCard(value);
 
             for (var i in notif.args.cards) {
                 var card = notif.args.cards[i];
@@ -872,21 +828,11 @@ function (dojo, declare, domStyle, lang, attr) {
                 this.playerHand.addToStockWithId(this.getCardUniqueId(color, value), card.id);
             }
             this.adjustCardOverlapToAvailableSpace();
-
-            if (this.autoplay) {
-                var that = this;
-                setTimeout(function() {
-                    var cards = that.playerHand.getAllItems();
-                    that.playerHand.selectItem(cards[0].id);
-                    that.playerHand.selectItem(cards[1].id);
-                    that.playerHand.selectItem(cards[2].id);
-                }, 500);
-            }
         },
 
         // A new hand is starting
         // This message is sent to every player
-        notif_newHandState: function(notif) {
+        notif_newHandPublic: function(notif) {
             this.showActivePlayer(notif.args.firstPlayer);
             this.showTrump(notif.args.trump);
 

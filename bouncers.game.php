@@ -130,7 +130,7 @@ class Bouncers extends Table {
         _ when a player refresh the game page (F5)
     */
     protected function getAllDatas() {
-        $result = array('players' => []);
+        $result = ['players' => []];
 
         // !! We must only return informations visible by this player !!
         $player_id = self::getCurrentPlayerId();
@@ -152,7 +152,7 @@ class Bouncers extends Table {
         $result['cardsontable'] = $this->cards->getCardsInLocation('cardsontable');
 
         // Point card
-        $result['point_card'] = $this->cards->getCardOnTop('points');
+        $result['points_card'] = $this->cards->getCardOnTop('points');
         // TODO: Upcoming cards
 
         $result['gameScores'] = $this->dbGetScores();
@@ -220,12 +220,12 @@ class Bouncers extends Table {
             $this->notifyPlayer($playerId, 'scoreDisplayRequest',
                 clienttranslate("No score to display"), []);
         } else {
-            $this->notifyPlayer($playerId, "tableWindow", '', array(
+            $this->notifyPlayer($playerId, "tableWindow", '', [
                 "id" => 'scoreView',
                 "title" => clienttranslate("Last hand"),
                 "table" => $lastScoreInfo,
                 "closing" => clienttranslate("Continue")
-            ));
+            ]);
         }
     }
 
@@ -583,9 +583,9 @@ class Bouncers extends Table {
 
         $this->gamestate->changeActivePlayer($this->getGameStateValue('firstPlayer'));
 
-        self::notifyAllPlayers('newRound', clienttranslate('Starting hand ${hand_num}'), array(
+        self::notifyAllPlayers('newRound', clienttranslate('Starting hand ${hand_num}'), [
             'hand_num' => $handCount,
-        ));
+        ]);
 
         // Take back all cards (from any location => null) to deck
         $this->cards->moveAllCardsInLocation('scorepile', 'points');
@@ -598,9 +598,10 @@ class Bouncers extends Table {
         foreach ($players as $player_id => $player) {
             $cards = $this->cards->pickCards(13, 'deck', $player_id);
             // Notify player about his cards
-            self::notifyPlayer($player_id, 'newHand', '', array(
+            self::notifyPlayer($player_id, 'newHand', '', [
               'cards' => $cards,
-              'hand_num' => $handCount));
+              'hand_num' => $handCount
+            ]);
         }
         $this->gamestate->nextState();
     }
@@ -624,10 +625,10 @@ class Bouncers extends Table {
 
             // Notify
             $players = self::loadPlayersBasicInfos();
-            self::notifyAllPlayers('trickWin', clienttranslate('${player_name} wins the trick'), array(
+            self::notifyAllPlayers('trickWin', clienttranslate('${player_name} wins the trick'), [
                     'player_id' => $winningPlayer,
                     'player_name' => $players[$winningPlayer]['player_name'],
-            ));
+            ]);
 
             self::setGameStateValue("ledSuit", 0);
 
@@ -643,9 +644,9 @@ class Bouncers extends Table {
             // => just active the next player
             $player_id = self::activeNextPlayer();
             $this->setCurrentPlayer($player_id);
-            self::notifyAllPlayers('currentPlayer', '', array(
+            self::notifyAllPlayers('currentPlayer', '', [
                 'currentPlayer' => $this->getCurrentPlayer()
-            ));
+            ]);
             self::giveExtraTime($player_id);
             $this->gamestate->nextState('nextPlayer');
         }
@@ -653,13 +654,13 @@ class Bouncers extends Table {
 
     function argPlayableCards() {
         $player_id = self::getActivePlayerId();
-        return array(
-            '_private' => array(
-                'active' => array(
+        return [
+            '_private' => [
+                'active' => [
                     'playableCards' => self::getPlayableCards($player_id)
-                )
-            )
-        );
+                ]
+            ]
+        ];
     }
 
     function stEndHand() {
@@ -684,27 +685,18 @@ class Bouncers extends Table {
                 $handScoreInfo['total'][$player_id];
             $this->dbSetRoundScore($player_id, $playerRoundScore);
 
-            if ($points != 0) {
-                $this->dbIncScore($player_id, $points);
+            $this->dbIncScore($player_id, $points);
 
-                self::notifyAllPlayers("points", clienttranslate('${player_name} bid ${bid} and gets ${points} points'), array(
-                    'player_id' => $player_id,
-                    'player_name' => $players[$player_id]['player_name'],
-                    'bid' => $handScoreInfo['bid'][$player_id],
-                    'points' => $points,
-                    'roundScore' => $playerRoundScore
-                ));
-            } else {
-                // No point lost (just notify)
-                self::notifyAllPlayers("points", clienttranslate('${player_name} bid ${bid} but did not get any points'), array (
-                    'player_id' => $player_id,
-                    'bid' => $handScoreInfo['bid'][$player_id],
-                    'player_name' => $players[$player_id]['player_name']));
-            }
+            self::notifyAllPlayers("points", clienttranslate('${player_name} gets ${points} points'), [
+                'player_id' => $player_id,
+                'player_name' => $players[$player_id]['player_name'],
+                'points' => $points,
+                'roundScore' => $playerRoundScore
+            ]);
         }
         $newScores = $this->getCurrentRoundScores();
         $gameScores = $this->dbGetScores();
-        self::notifyAllPlayers("newScores", '', array('newScores' => $newScores, 'gameScores' => $gameScores));
+        self::notifyAllPlayers("newScores", '', ['newScores' => $newScores, 'gameScores' => $gameScores]);
 
         // Test if this is the end of the round
         // Display the score for the hand
@@ -734,7 +726,7 @@ class Bouncers extends Table {
         $roundScoreInfo = $this->generateRoundScoreInfo();
 
         $gameScores = $this->dbGetScores();
-        self::notifyAllPlayers("newScores", '', array('newScores' => $roundScores, 'gameScores' => $gameScores));
+        self::notifyAllPlayers("newScores", '', ['newScores' => $roundScores, 'gameScores' => $gameScores]);
     }
 
     /**
@@ -819,33 +811,15 @@ class Bouncers extends Table {
     function createHandScoringTable($scoreInfo) {
         $players = self::loadPlayersBasicInfos();
         $table = [];
-        $firstRow = array('');
+        $firstRow = [''];
         foreach ($players as $player_id => $player) {
-            $firstRow[] = array('str' => '${player_name}',
-                                'args' => array('player_name' => $player['player_name']),
-                                'type' => 'header');
+            $firstRow[] = ['str' => '${player_name}',
+                                'args' => ['player_name' => $player['player_name']],
+                                'type' => 'header'];
         }
         $table[] = $firstRow;
 
-        $bidRow = array(clienttranslate("Bid"));
-        foreach ($players as $player_id => $player) {
-            $bidRow[] = $scoreInfo['bidStr'][$player_id];
-        }
-        $table[] = $bidRow;
-
-        $tricksRow = array(clienttranslate("Tricks Taken"));
-        foreach ($players as $player_id => $player) {
-            $tricksRow[] = $scoreInfo['tricks'][$player_id];
-        }
-        $table[] = $tricksRow;
-
-        $bonusRow = array(clienttranslate("Bonus"));
-        foreach ($players as $player_id => $player) {
-            $bonusRow[] = $scoreInfo['bonus'][$player_id];
-        }
-        $table[] = $bonusRow;
-
-        $totalRow = array(clienttranslate("Total"));
+        $totalRow = [clienttranslate("Total")];
         foreach ($players as $player_id => $player) {
             $totalRow[] = $scoreInfo['total'][$player_id];
         }
@@ -854,7 +828,7 @@ class Bouncers extends Table {
         // Having a separater between hand total and round total is nice
         $table[] = $this->createEmptyScoringRow();
 
-        $roundScoreRow = array(clienttranslate("Game Score"));
+        $roundScoreRow = [clienttranslate("Game Score")];
         foreach ($players as $player_id => $player) {
             $roundScoreRow[] = $scoreInfo['currentScore'][$player_id];
         }
@@ -865,12 +839,12 @@ class Bouncers extends Table {
     // Display the score
     function notifyScore($table, $message) {
         $this->saveCurrentScoreTable($table);
-        $this->notifyAllPlayers("tableWindow", '', array(
+        $this->notifyAllPlayers("tableWindow", '', [
             "id" => 'scoreView',
             "title" => $message,
             "table" => $table,
             "closing" => clienttranslate("Continue")
-        ));
+        ]);
     }
 
     /**
@@ -955,7 +929,7 @@ class Bouncers extends Table {
         $players = self::loadPlayersBasicInfos();
 
         // Add a blank link to separate the hand information from the round info
-        $emptyRow = array('');
+        $emptyRow = [''];
         foreach ($players as $player_id => $player) {
             $emptyRow[] = '';
         }

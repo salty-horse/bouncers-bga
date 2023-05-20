@@ -32,7 +32,7 @@
             </span>
         </h3>
     </div>
-    <div id="middleRow">
+    <div id="bgabnc_middleRow">
         <div id="playertables">
 
             <!-- BEGIN player -->
@@ -49,9 +49,9 @@
             </div>
             <!-- END player -->
 
-            <div class="whiteblock" id="trumpContainer">
-                <div class="">{TRUMP_LABEL}</div>
-                <div class="bgabnc_trump_suit" id="trumpSuit">{NONE}</div>
+            <div class="whiteblock" id="bgabnc_pointsContainer">
+                <div>{SCORE_CARD_LABEL}</div>
+                <div id="bgabnc_pointsCard">{NONE}</div>
             </div>
         </div>
     </div>

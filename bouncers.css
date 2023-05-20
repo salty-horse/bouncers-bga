@@ -56,7 +56,7 @@
 @media screen and (max-width: 1236px) {
 }
 
-#middleRow {
+#bgabnc_middleRow {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
@@ -64,7 +64,7 @@
     margin-bottom: 10px;
 }
 
-#middleRow > div {
+#bgabnc_middleRow > div {
     flex-basis: auto;
 }
 
@@ -209,7 +209,7 @@
     height: 96px;
 }
 
-#trumpContainer {
+#bgabnc_pointsContainer {
     min-width: 120px;
     max-width: 150px;
     text-align: center;
@@ -220,13 +220,13 @@
 }
 
 /* For 4 players we need more space */
-.player_count_4 #trumpContainer {
+.player_count_4 #bgabnc_pointsContainer {
     margin-top: 190px;
     height: 20px;
     font-size: 16px;
 }
 
-.player_count_4 #trumpContainer > div {
+.player_count_4 #bgabnc_pointsContainer > div {
     display: inline;
 }
 
@@ -426,30 +426,6 @@
     background-position-x: -1200%;
 }
 
-.bgabnc_trump_red {
-    color: red;
-    font-size: 40px;
-}
-
-.bgabnc_trump_black {
-    color: black;
-    font-size: 40px;
-}
-
-.bgabnc_trump_none {
-    color: black;
-    font-size: 16px;
-}
-
-.player_count_3 .bgabnc_trump_suit.bgabnc_trump_none {
-    line-height: 3;
-}
-
-.player_count_4 #trumpSuit:not(.bgabnc_trump_none) {
-    font-size: 24px;
-    line-height: 0.7;
-}
-
 /*** for notifications ***/
 .bgabnc_icon {
     background: no-repeat;
@@ -547,27 +523,9 @@
     width: 100%;
 }
 
-#my_bid_container {
-    min-width: 240px;
-    height: 130px;
-    margin: 0px;
-    margin-right: 10px;
-    border-top: 1px solid black;
-}
-
 #declare_label {
     margin-left: 5px;
     color: red;
-}
-
-.spectatorMode #my_bid_container {
-    display: none;
-}
-
-#mybid {
-    position: relative;
-    display: inline-block;
-    width: 100%;
 }
 
 /** Add hover effect to cards in hand **/
