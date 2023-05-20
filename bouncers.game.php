@@ -492,7 +492,7 @@ class Bouncers extends Table {
     function playCardFromPlayer($card_id, $player_id) {
         self::checkAction('playCard');
 
-        $current_card = $this->deck->getCard($card_id);
+        $current_card = $this->cards->getCard($card_id);
 
         // Sanity check. A more thorough check is done later.
         if ($current_card['location'] != 'hand' || $current_card['location_arg'] != $player_id) {
@@ -511,7 +511,7 @@ class Bouncers extends Table {
             self::setGameStateValue('ledSuit', $current_card['type']);
 
         // And notify
-        self::notifyAllPlayers('playCard', clienttranslate('${player_name} plays ${rank_displayed} ${suit_displayed}'), array(
+        self::notifyAllPlayers('playCard', clienttranslate('${player_name} plays ${rank_displayed} ${suit_displayed}'), [
             'i18n' => array('suit_displayed', 'rank_displayed'),
             'card_id' => $card_id,
             'player_id' => $player_id,
@@ -521,7 +521,7 @@ class Bouncers extends Table {
             'suit' => $currentCard['type'],
             'suit_displayed' => '<span class="bgabnc_icon bgabnc_suit'.$currentCard['type'] . '"></span>',
             'currentPlayer' => $this->getCurrentPlayer()
-        ));
+        ]);
 
         // Next player
         $this->gamestate->nextState('playCard');

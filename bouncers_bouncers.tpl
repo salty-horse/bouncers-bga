@@ -24,13 +24,20 @@
     See your "view" PHP file to check how to set variables and control blocks
 -->
 <div id="table" class="player_count_{PLAYER_COUNT}">
+    <div id="declarerevealtable">
+        <h3 class="whiteblock">
+            <span id="round_name_container" class="bgann_invisible">
+                <span class="">{ROUND_LABEL} </span>
+                <span id="round_name">1</span>
+            </span>
+        </h3>
+    </div>
     <div id="middleRow">
         <div id="playertables">
 
             <!-- BEGIN player -->
             <div class="bgabnc_playertable whiteblock bgabnc_playertable_{DIR}" id="playertable_{PLAYER_ID}">
                 <div class="bgabnc_playertablename" style="color:#{PLAYER_COLOR}">
-                    <span id="dealerindicator_{PLAYER_ID}" class="bgabnc_dealerindicator bgabnc_hidden">(D)</span>
                     {PLAYER_NAME}
                 </div>
                 <div class="bgabnc_playertablecard" id="playertablecard_{PLAYER_ID}">

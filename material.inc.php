@@ -2,7 +2,8 @@
 /**
  *------
  * BGA framework: © Gregory Isabelli <gisabelli@boardgamearena.com> & Emmanuel Colin <ecolin@boardgamearena.com>
- * Bouncers implementation : © Eric Kelly <boardgamearena@useric.com>
+ * Bouncers implementation : © Ori Avtalion <ori@avtalion.name>
+ * Based on NinetyNine implementation: © Eric Kelly <boardgamearena@useric.com>
  *
  * This code has been produced on the BGA studio platform for use on http://boardgamearena.com.
  * See http://en.boardgamearena.com/#!doc/Studio for more information.
@@ -20,22 +21,22 @@
  */
 
 
-$this->suits = array(
-    0 => array('name' => clienttranslate('club'),
-               'pluralname' => clienttranslate('Clubs'),
-               'nametr' => self::_('club'),
-               'symbol' => clienttranslate('♣')),
-    1 => array('name' => clienttranslate('diamond'),
-               'pluralname' => clienttranslate('Diamonds'),
-               'nametr' => self::_('diamond'),
-               'symbol' => clienttranslate('♦')),
-    2 => array('name' => clienttranslate('spade'),
-               'pluralname' => clienttranslate('Spades'),
-               'nametr' => self::_('spade'),
-               'symbol' => clienttranslate('♠')),
-);
+$this->suits = [
+    0 => ['name' => clienttranslate('club'),
+          'pluralname' => clienttranslate('Clubs'),
+          'nametr' => self::_('club'),
+          'symbol' => clienttranslate('♣')],
+    1 => ['name' => clienttranslate('diamond'),
+          'pluralname' => clienttranslate('Diamonds'),
+          'nametr' => self::_('diamond'),
+          'symbol' => clienttranslate('♦')],
+    2 => ['name' => clienttranslate('spade'),
+          'pluralname' => clienttranslate('Spades'),
+          'nametr' => self::_('spade'),
+          'symbol' => clienttranslate('♠')],
+];
 
-$this->rank_label = array(
+$this->rank_label = [
     2 => '2',
     3 => '3',
     4 => '4',
@@ -49,4 +50,4 @@ $this->rank_label = array(
     12 => clienttranslate('Q'),
     13 => clienttranslate('K'),
     14 => clienttranslate('A')
-);
+];

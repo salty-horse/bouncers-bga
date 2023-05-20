@@ -100,16 +100,6 @@ function (dojo, declare, domStyle, lang, attr) {
             this.unmarkUnplayableCards();
             this.handlePlayableCards(this.gamedatas.playableCards);
 
-            // Player bid
-            this.playerBid = this.setupCardStocks('mybid');
-
-            // Declared Bid
-            this.declaredBid = this.setupCardStocks('declaredBid');
-
-            // Revealed Hand
-            this.revealedHand = this.setupCardStocks('revealedHand');
-            this.revealedHand.setOverlap(20, 0);
-
             // Cards played on table
             for (var i in this.gamedatas.cardsontable) {
                 var card = this.gamedatas.cardsontable[i];
@@ -119,26 +109,14 @@ function (dojo, declare, domStyle, lang, attr) {
                 this.playCardOnTable(player_id, color, value, card.id);
             }
 
-            // Cards in the player's bid
-            this.addCardsToStock(this.playerBid, this.gamedatas.bid.cards);
-            if (Object.entries(this.gamedatas.bid.cards).length == 3) {
-                this.setNodeHidden("my_bid_container", false);
-            }
-            this.updateSelfBid();
-            this.showActiveDeclareOrReveal(this.gamedatas.declareReveal);
-
-            // Current dealer
-            this.showDealer(this.gamedatas.dealer);
-
             // Current player
-            this.showCurrentPlayer(this.gamedatas.currentPlayer);
+            this.showCurrentPlayer();
 
             // Current trump
             this.showTrump(this.gamedatas.trump);
 
             // Set trick counts
             this.updateTrickCounts(this.gamedatas.trickCounts,
-                                   this.gamedatas.declareReveal.playerId,
                                    false);
 
             // Set scores
@@ -247,21 +225,11 @@ function (dojo, declare, domStyle, lang, attr) {
                     this.addHoverEffectToCards("myhand", true);
                     this.showTrickLabels();
                     if (this.getActivePlayerId() != null) {
-                        this.showCurrentPlayer(this.getActivePlayerId());
+                        this.showCurrentPlayer();
                     }
                     if (args && args.args && args.args._private && args.args._private.playableCards) {
                         this.handlePlayableCards(args.args._private.playableCards);
                     }
-                    break;
-
-                case 'bidding':
-                    this.updateSelfBid();
-                    // This also clears tricks won
-                    this.clearActiveDeclareOrReveal();
-                    // It looks nicer if we use ? instead of 0
-                    dojo.byId("tricks_" + this.player_id).textContent = "?";
-                    this.addHoverEffectToCards("myhand", true);
-                    this.addTooltipsToEachCard(this.playerHand, _('Add to bid'));
                     break;
             }
         },
@@ -272,14 +240,6 @@ function (dojo, declare, domStyle, lang, attr) {
         onLeavingState: function(stateName) {
             console.log("Leaving state: " + stateName);
             switch (stateName) {
-                case 'bidding':
-                    this.clearTooltipsFromCards(this.playerHand);
-                    this.clearTooltipsFromCards(this.playerBid);
-                    this.addHoverEffectToCards("myhand", false);
-                    this.showTrickLabels();
-                    dojo.byId("tricks_" + this.player_id).textContent = "0";
-                    this.playerHand.setSelectionMode(1);
-                    break;
             }
         },
 
@@ -287,22 +247,6 @@ function (dojo, declare, domStyle, lang, attr) {
         //                        action status bar (ie: the HTML links in the status bar).
         //
         onUpdateActionButtons: function(stateName, args) {
-            console.log("Updating action buttons with state: " + stateName + ". Current player active? " + this.isCurrentPlayerActive());
-            if (this.isCurrentPlayerActive()) {
-                switch (stateName) {
-                    case 'bidding':
-                        this.addActionButton('reveal_button', _('Reveal'), 'onReveal');
-                        this.addActionButton('declare_button', _('Declare'), 'onDeclare');
-                        this.addActionButton('none_button', _('Neither'), 'onNoDeclare');
-                        break;
-                }
-            } else if (!this.isSpectator) {
-                switch (stateName) {
-                    case 'bidding':
-                        this.addActionButton('undo_button', _('Undo bid'), 'onUndoBid');
-                        break;
-                }
-            }
         },
 
         ///////////////////////////////////////////////////
@@ -358,12 +302,6 @@ function (dojo, declare, domStyle, lang, attr) {
             return (card_id % 13) + 2;
         },
 
-        // Given the numerical value of the suit, return the number of
-        // points that it is worth in bidding
-        getBidValueFromSuit: function(suit) {
-            return {club: 3, diamond: 0, spade: 1, heart: 2}[suit];
-        },
-
         // Return true if both passed cards are the same
         // Only works for cards that are retrieved from the various stocks
         isCardSame: function(cardOne, cardTwo) {
@@ -413,38 +351,6 @@ function (dojo, declare, domStyle, lang, attr) {
         /*
            Card UI utility functions
          */
-
-        // Add a particular tooltip to each card in the stock
-        addTooltipsToEachCard: function(stock, actionString) {
-            var allCards = stock.getAllItems();
-            for (var i = 0; i < allCards.length; i++) {
-                var cardData = allCards[i];
-                this.addTooltipToCard(stock, cardData, actionString);
-            }
-        },
-
-        // Add a tooltip to an individual card from a stock
-        addTooltipToCard: function(stock, cardData, actionString) {
-            var suit = this.getCardSuitFromId(cardData.type);
-            var divId = stock.getItemDivId(cardData.id);
-            var bidValue = this.getBidValueFromSuit(suit);
-            this.addTooltip(divId, _('Bid value: ') + bidValue, actionString);
-        },
-
-        // Remove a tooltip from a card
-        clearTooltipFromCard: function(stock, cardData) {
-            var divId = stock.getItemDivId(cardData.id);
-            this.removeTooltip(divId);
-        },
-
-        // Remove all tooltips from all cards in the stock
-        clearTooltipsFromCards: function(stock) {
-            var allCards = stock.getAllItems();
-            for (var i = 0; i < allCards.length; i++) {
-                var cardData = allCards[i];
-                this.clearTooltipFromCard(stock, cardData);
-            }
-        },
 
         // Given a set of playable cards from the server, do all required actions
         handlePlayableCards: function(playableCards) {
@@ -561,107 +467,6 @@ function (dojo, declare, domStyle, lang, attr) {
         },
 
         /*
-           Bid UI utility methods
-         */
-
-        // Given the cards making up the bid, update the appropriate UI
-        // Note: Only works for cards from the stock, not the server
-        updateBidState: function(bidCards) {
-            // Move those items to the bid
-            this.setNodeHidden("my_bid_container", false);
-
-            if (this.playerBid.getAllItems().length != 3) {
-                this.playerBid.removeAll();
-                var that = this;
-                bidCards.forEach(function(card) {
-                    var divId = that.playerHand.getItemDivId(card.id);
-                    if (divId) {
-                        that.playerBid.addToStockWithId(card.type, card.id, divId);
-                    } else {
-                        that.playerBid.addToStockWithId(card.type, card.id);
-                    }
-                    that.playerHand.removeFromStockById(card.id);
-                    that.clearTooltipFromCard(that.playerHand, card);
-                });
-            }
-            this.updateSelfBid();
-            this.playerHand.unselectAll();
-            this.adjustCardOverlapToAvailableSpace();
-            this.lastItemsSelected = [];
-        },
-
-        // Update the computed value of the bid
-        // This will prioritize cards in the playerBid stock, but if that
-        // has no cards it will fall back to selected items from the playerHand
-        updateSelfBid: function() {
-            var cards = this.playerBid.getAllItems();
-            if (cards.length == 0) {
-                // If we still need to submit our bid
-                cards = this.playerHand.getSelectedItems();
-            }
-            this.updateCurrentBidFromCards(cards, "bidValue");
-            this.updateCurrentBidFromCards(cards, "bid_" + this.player_id);
-        },
-
-        // Given a stock containing bid cards, update the value of the
-        // bid in divId
-        updateCurrentBidFromBidStock: function(bidStock, divId) {
-            this.updateCurrentBidFromCards(bidStock.getAllItems(), divId);
-        },
-
-        // Given a list of bid cards, update the value of the
-        // bid in divId
-        updateCurrentBidFromCards: function(cardList, divId) {
-            var bid = this.getBidValueFromCards(cardList);
-            var bidValueSpan = dojo.byId(divId);
-            if (bidValueSpan) {
-                bidValueSpan.textContent = bid;
-            }
-        },
-
-        // Return the string representation of the value of a particular
-        // set of cards representing a bid
-        getBidValueFromCards: function(cardList) {
-            if (cardList.length == 0) {
-                return "?";
-            }
-            var bid = 0;
-            for (var x = 0; x < cardList.length; x++) {
-                var card = cardList[x];
-                var id = card.type;
-                var suit = this.getCardSuitFromId(id);
-                var bidValue = this.getBidValueFromSuit(suit);
-                bid += bidValue;
-            }
-            if (this.getPlayerCount() == 4 && bid == 0 && cardList.length == 3) {
-                return "0/10";
-            }
-            return bid;
-        },
-
-        // Animate the display of the declared bid and revealed cards
-        animateBidVisibility: function(visible, reveal) {
-            if (visible) {
-                this.setNodeInvisible("revealtable", !reveal);
-                this.setNodeInvisible("declaretable", false);
-                dojo.addClass("bids", "bgabnc_showbid");
-            } else {
-                dojo.removeClass("bids", "bgabnc_showbid");
-                if (this.isReadOnly()) {
-                    this.setNodeInvisible("revealtable", true);
-                    this.setNodeInvisible("declaretable", true);
-                } else {
-                    // This timeout should match the transition speed of #bids
-                    var that = this;
-                    setTimeout(function() {
-                        that.setNodeInvisible("revealtable", true);
-                        that.setNodeInvisible("declaretable", true);
-                    }, this.animateBidVisibilityDuration);
-                }
-            }
-        },
-
-        /*
            Scoring UI utility methods
          */
 
@@ -677,19 +482,17 @@ function (dojo, declare, domStyle, lang, attr) {
 
         // Update the number of tricks won by a particular player
         // trickCounts: number of tricks each player won
-        // declaringPlayerId: The id of the player that declared
         // animate: true if this occurred as a result of winning a trick
-        updateTrickCounts: function(trickCounts, declaringPlayerId, animate) {
+        updateTrickCounts: function(trickCounts, animate) {
             for (var playerId in trickCounts) {
                 this.updateCurrentTricksWon(playerId,
                                             trickCounts[playerId],
-                                            trickCounts[declaringPlayerId],
                                             animate);
             }
         },
 
         // Update a specific player's tricks won counter
-        updateCurrentTricksWon: function(playerId, tricksWon, declaringPlayerTricks, animate) {
+        updateCurrentTricksWon: function(playerId, tricksWon, animate) {
             if (this.checkAction('submitBid', true)) {
                 // We should skip this if we're bidding
                 return;
@@ -705,10 +508,8 @@ function (dojo, declare, domStyle, lang, attr) {
                 }
             }
             if (shouldAnimate) {
-                this.animateScoreDisplay("declaredTricksWon", declaringPlayerTricks);
                 this.animateScoreDisplay("tricks_"+playerId, tricksWon);
             } else {
-                this.updateValueInNode("declaredTricksWon", declaringPlayerTricks);
                 this.updateValueInNode("tricks_" + playerId, tricksWon);
             }
         },
@@ -834,62 +635,6 @@ function (dojo, declare, domStyle, lang, attr) {
             this.showMessage(message, "info");
         },
 
-        // Update the UI with the information about who has
-        // declared/revealed, and their exposed information
-        showActiveDeclareOrReveal: function(decRevInfo) {
-            var playerNameSpan = dojo.byId("decrev_player_name");
-            if (decRevInfo.playerId) {
-                var clientCards = this.serverCardsToClientCards(decRevInfo.bid);
-                var bidValue = this.getBidValueFromCards(clientCards);
-                var didReveal = Object.keys(decRevInfo.cards).length > 0;
-                if (decRevInfo.playerId != this.player_id) {
-                    this.animateBidVisibility(true, didReveal);
-                    // Show Revealed cards
-                    this.revealedHand.removeAll();
-                    this.addCardsToStock(this.revealedHand, decRevInfo.cards);
-                    // Show Declared bid
-                    this.declaredBid.removeAll();
-                    this.addCardsToStock(this.declaredBid, decRevInfo.bid);
-                    // Hide declare/reveal label for myself
-                    this.setNodeHidden("declare_label", true);
-                    this.setNodeHidden("reveal_label", true);
-                } else {
-                    this.setNodeHidden("declare_label", false);
-                    if (didReveal) {
-                        this.setNodeHidden("reveal_label", false);
-                    }
-                }
-                // Set the name in the banner for the player who declared/revealed
-                playerNameSpan.textContent = decRevInfo.playerName;
-                var playerColor = decRevInfo.playerColor;
-                domStyle.set(playerNameSpan, "color", "#" + playerColor);
-
-                // Put the player's bid in the player table
-                this.showTrickLabels(decRevInfo.playerId, bidValue, didReveal);
-                this.updateValueInNode("bid_" + decRevInfo.playerId, bidValue);
-            } else {
-                playerNameSpan.textContent = _("None");
-                domStyle.set(playerNameSpan, "color", "#000000");
-                this.animateBidVisibility(false);
-                // Hide Declare and reveal if there isn't a declaring or revealing player
-                this.showTrickLabels();
-            }
-            this.updateCurrentBidFromBidStock(this.declaredBid, "declaredBidValue");
-        },
-
-        // Reset the UI showing active declare/reveal information
-        clearActiveDeclareOrReveal: function() {
-            this.showActiveDeclareOrReveal({});
-            this.declaredBid.removeAll();
-            this.revealedHand.removeAll();
-            this.updateCurrentBidFromBidStock(this.declaredBid, "declaredBidValue");
-            this.animateBidVisibility(false);
-            this.clearTricksWon();
-            // Hide declare/reveal label for myself
-            this.setNodeHidden("declare_label", true);
-            this.setNodeHidden("reveal_label", true);
-        },
-
         /*
            Trick-related UI utility methods
          */
@@ -910,13 +655,8 @@ function (dojo, declare, domStyle, lang, attr) {
             var cardCameFromSomeoneElse = player_id != this.player_id || this.isSpectator;
             if (cardCameFromSomeoneElse) {
                 // Some opponent played a card (or spectator is observing)
-                if ($('revealedHand_item_'+card_id)) {
-                    this.placeOnObject('cardontable_'+player_id, 'revealedHand_item_'+card_id);
-                    this.revealedHand.removeFromStockById(card_id);
-                } else {
-                    // Move card from player panel
-                    this.placeOnObject('cardontable_'+player_id, 'overall_player_board_'+player_id);
-                }
+                // Move card from player panel
+                this.placeOnObject('cardontable_'+player_id, 'overall_player_board_'+player_id);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
@@ -936,9 +676,9 @@ function (dojo, declare, domStyle, lang, attr) {
 
         // Move all the cards currently played on the table to the trick winner
         // and update relevant trick counts
-        giveAllCardsToPlayer: function(winner_id, playerTrickCounts, decRevPlayerId) {
+        giveAllCardsToPlayer: function(winner_id, playerTrickCounts) {
             // Move all cards on table to given table, then destroy them
-            this.updateTrickCounts(playerTrickCounts, decRevPlayerId, true);
+            this.updateTrickCounts(playerTrickCounts, true);
 
             for (var player_id in this.gamedatas.players) {
                 // There's a race condition between cards leaving the table and cards
@@ -1008,26 +748,20 @@ function (dojo, declare, domStyle, lang, attr) {
             }
         },
 
-        // Provide a visual indication as to who the dealer is
-        showDealer: function(dealer_id) {
-            dojo.query(".bgabnc_dealerindicator").addClass("bgabnc_hidden");
-            this.setNodeHidden("dealerindicator_" + dealer_id, false);
-        },
-
         // Provide a visual indication as to who's action it is
         showActivePlayer: function(expectedActivePlayer) {
             var activePlayer = this.getActivePlayerId();
             if (activePlayer == null) {
                 activePlayer = expectedActivePlayer;
             }
-            this.showCurrentPlayer(activePlayer);
+            this.showCurrentPlayer();
         },
 
         // Provide a visual indication as to who's action it is
         // NOTE: bgabnc_firstplayer is a misnomer
-        showCurrentPlayer: function(currentPlayer) {
+        showCurrentPlayer: function() {
             dojo.query(".bgabnc_playertable").removeClass("bgabnc_firstplayer");
-            dojo.addClass("playertable_" + currentPlayer, "bgabnc_firstplayer");
+            dojo.addClass("playertable_" + this.getActivePlayerId(), "bgabnc_firstplayer");
         },
 
         ///////////////////////////////////////////////////
@@ -1057,30 +791,6 @@ function (dojo, declare, domStyle, lang, attr) {
                     // Can play a card
                     this.playCard(items[0]);
                 }
-            } else if (this.checkAction('submitBid', true)) {
-                var that = this;
-                if (items.length > 3) {
-                    // Disallow adding more than three cards to the bid
-                    items.forEach(function(item) {
-                        if (!that.lastItemsSelected.includes(item)) {
-                            that.playerHand.unselectItem(item.id);
-                        }
-                    });
-                    return;
-                }
-                this.lastItemsSelected = items;
-                // We still need to update the bid if we unselect all our cards
-                this.updateSelfBid();
-
-                // Add the proper tooltips
-                items.forEach(function(item) {
-                    that.clearTooltipFromCard(that.playerHand, item);
-                    that.addTooltipToCard(that.playerHand, item, _('Remove from bid'));
-                });
-                this.playerHand.getUnselectedItems().forEach(function(item) {
-                    that.clearTooltipFromCard(that.playerHand, item);
-                    that.addTooltipToCard(that.playerHand, item, _('Add to bid'));
-                });
             }
         },
 
@@ -1089,77 +799,6 @@ function (dojo, declare, domStyle, lang, attr) {
             clearTimeout(this.playForcedCardFuture);
             this.ajaxCallWrapper('playCard', { id: card.id });
             this.playerHand.unselectAll();
-        },
-
-        // When the 'Neither' bid is selected
-        onNoDeclare: function() {
-            this.submitBid(0);
-        },
-
-        // When the 'Declare' bid is selected
-        onDeclare: function() {
-            this.confirmationDialog(_('Are you sure you want to declare your bid?'),
-                                    dojo.hitch(this, function() {
-                this.submitBid(1);
-            }));
-        },
-
-        // When the 'Reveal' bid is selected
-        onReveal: function() {
-            this.confirmationDialog(_('Are you sure you want to reveal your hand?'),
-                                    dojo.hitch(this, function() {
-                this.submitBid(2);
-            }));
-        },
-
-        // Trigger undoing a bid
-        onUndoBid: function() {
-            this.ajaxCallWrapper("undoBid", {}, true);
-
-            // Move bid cards back to the hand
-            var items = this.playerBid.getAllItems();
-            var that = this;
-            items.forEach(function(item) {
-                var divId = that.playerBid.getItemDivId(item.id);
-                that.playerHand.addToStockWithId(item.type, item.id, divId);
-                that.playerBid.removeFromStockById(item.id);
-            });
-            this.playerHand.getAllItems().forEach(function(item) {
-                that.clearTooltipFromCard(that.playerHand, item);
-                that.addTooltipToCard(that.playerHand, item, _('Add to bid'));
-            });
-            this.setNodeHidden("my_bid_container", true);
-
-            // If any cards in the bid were trump, we need to
-            // highlight that card again
-            this.showTrump(this.cachedTrump);
-
-            this.adjustCardOverlapToAvailableSpace();
-            this.lastItemsSelected = [];
-            this.updateSelfBid();
-        },
-
-        // Submit an individual bid
-        // decrev should be 0 = none, 1 = declare, 2 = reveal
-        submitBid: function(decrev) {
-            if (this.checkAction('submitBid')) {
-                var items = this.playerHand.getSelectedItems();
-
-                if (items.length != 3) {
-                    this.showMessage(_("You must select exactly 3 cards"), 'error');
-                    return;
-                }
-
-                // Give these 3 cards
-                var to_give = '';
-                for (var i in items) {
-                    to_give += items[i].id+';';
-                }
-                this.ajaxCallWrapper('submitBid', {
-                    cards: to_give,
-                    declareOrReveal: decrev,
-                });
-            }
         },
 
         // Display the last score table
@@ -1203,15 +842,12 @@ function (dojo, declare, domStyle, lang, attr) {
             this.notifqueue.setSynchronous('trickWin', (this.trickWinDelay + this.winnerTakeDuration + this.fadeOutDuration));
             dojo.subscribe('points', this, "notif_points");
             dojo.subscribe('newScores', this, "notif_newScores");
-            dojo.subscribe('bidCards', this, "notif_bidCards");
-            dojo.subscribe('biddingCompleteState' , this, "notif_biddingCompleteState");
         },
 
         // From this point and below, you can write your game notifications handling methods
 
         // A new round has started
         notif_newRound: function(notif) {
-            this.showDealer(notif.args.dealer);
             this.showActivePlayer(notif.args.firstPlayer);
             if (notif.args.round_num) {
                 // if this game uses rounds
@@ -1236,10 +872,7 @@ function (dojo, declare, domStyle, lang, attr) {
 
             // Just to be sure, clean up any old state
             this.playerHand.removeAll();
-            this.playerBid.removeAll();
-            this.animateBidVisibility(false);
             this.clearTricksWon();
-            this.updateSelfBid();
             this.setNodeHidden("my_bid_container", true);
 
             for (var i in notif.args.cards) {
@@ -1257,7 +890,6 @@ function (dojo, declare, domStyle, lang, attr) {
                     that.playerHand.selectItem(cards[0].id);
                     that.playerHand.selectItem(cards[1].id);
                     that.playerHand.selectItem(cards[2].id);
-                    that.onNoDeclare();
                 }, 500);
             }
         },
@@ -1265,7 +897,6 @@ function (dojo, declare, domStyle, lang, attr) {
         // A new hand is starting
         // This message is sent to every player
         notif_newHandState: function(notif) {
-            this.showDealer(notif.args.dealer);
             this.showActivePlayer(notif.args.firstPlayer);
             this.showTrump(notif.args.trump);
 
@@ -1296,14 +927,13 @@ function (dojo, declare, domStyle, lang, attr) {
         notif_trickWin: function(notif) {
             var winner_id = notif.args.player_id;
             var playerTrickCounts = notif.args.playerTrickCounts;
-            var decRevPlayerId = notif.args.decRevPlayerId;
             if (this.isReadOnly()) {
-                this.giveAllCardsToPlayer(winner_id, playerTrickCounts, decRevPlayerId);
+                this.giveAllCardsToPlayer(winner_id, playerTrickCounts);
             } else {
                 // The timeout allows players to view the cards that are played before they're gone.
                 var that = this;
                 setTimeout(function() {
-                    that.giveAllCardsToPlayer(winner_id, playerTrickCounts, decRevPlayerId);
+                    that.giveAllCardsToPlayer(winner_id, playerTrickCounts);
                 }, this.trickWinDelay);
             }
         },
@@ -1326,21 +956,6 @@ function (dojo, declare, domStyle, lang, attr) {
             this.updateRoundScores(notif.args.newScores);
             this.updateGameScores(notif.args.gameScores);
         },
-
-        // This notifies the player to remove the cards in their bid
-        // from their hand.
-        notif_bidCards: function(notif) {
-            var bidCards = notif.args.cards.map(function(cardId) {
-                return parseInt(cardId);
-            });
-            this.updateBidState(this.getCardsFromStockById(this.playerHand, bidCards));
-        },
-
-        // Bidding is complete. Update the active declare/reveal information
-        notif_biddingCompleteState: function(notif) {
-            this.showActiveDeclareOrReveal(notif.args.declareReveal);
-            this.informUsersPlayerDeclaredOrRevealed(notif.args.declareReveal);
-        }
    });
 });
 
