@@ -36,22 +36,21 @@
         <div id="playertables">
 
             <!-- BEGIN player -->
-            <div class="bgabnc_playertable whiteblock bgabnc_playertable_{DIR}" id="playertable_{PLAYER_ID}">
+            <div class="bgabnc_playertable whiteblock bgabnc_playertable_{DIR}" id="bgabnc_playertable_{PLAYER_ID}">
                 <div class="bgabnc_playertablename" style="color:#{PLAYER_COLOR}">
                     {PLAYER_NAME}
                 </div>
-                <div class="bgabnc_playertablecard" id="playertablecard_{PLAYER_ID}">
+                <div class="bgabnc_playertablecard" id="bgabnc_playertablecard_{PLAYER_ID}"></div>
+                <div>
+                    <span>{SCORE_PILE}</span> <span id="bgabnc_scorepile_{PLAYER_ID}"></span><br>
+                    <span>{SCORE_PILE_TOTAL}</span> <span id="bgabnc_scorepile_total_{PLAYER_ID}">0</span>
                 </div>
-                <span class="bgabnc_playertable_tricks" id="trick_info_{PLAYER_ID}">
-                    <span class="">Tricks taken: </span>
-                    <span id="tricks_{PLAYER_ID}">0</span>
-                </span>
             </div>
             <!-- END player -->
 
             <div class="whiteblock" id="bgabnc_pointsContainer">
                 <div>{SCORE_CARD_LABEL}</div>
-                <div id="bgabnc_pointsCard">{NONE}</div>
+                <div id="bgabnc_pointsCard"></div>
             </div>
         </div>
     </div>

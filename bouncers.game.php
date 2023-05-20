@@ -152,7 +152,7 @@ class Bouncers extends Table {
         $result['cardsontable'] = $this->cards->getCardsInLocation('cardsontable');
 
         // Point card
-        $result['points_card'] = $this->cards->getCardOnTop('points');
+        $result['points_card'] = $this->cards->getCardOnTop('points')['type_arg'];
         // TODO: Upcoming cards
 
         $result['gameScores'] = $this->dbGetScores();
@@ -162,6 +162,8 @@ class Bouncers extends Table {
             $player_id = $player['id'];
             $player['score_pile'] = $this->getScorePile($player_id);
         }
+
+        $result['rank_labels'] = $this->rank_label;
 
         return $result;
     }
@@ -349,18 +351,17 @@ class Bouncers extends Table {
     }
 
     function getScorePile($player_id) {
-
         // Cards with a lower location_arg were collected earlier
-        $score_pile_cards = self::getObjectListFromDB("select card_id from card where card_location = 'scorepile_${player_id}' order by card_location_arg");
-        // This is an array of arrays with card values. E.g. [[1], [2], [3]].
+        $score_pile_cards = self::getObjectListFromDB("select card_type_arg from card where card_location = 'scorepile_${player_id}' order by card_location_arg", true);
+         self::dump('my_var', $score_pile_cards);
 
-
-
-        // Create mapping of value to index. Find the bouncers.
+        // Create mapping of value to index. Find the bouncers. Turn values into arrays with single value.
+        // (E.g. [[1], [2], [3]])
         $value_to_index = [];
         $bouncers = [];
         for ($i = 0; $i < count($score_pile_cards); $i++) {
-            $value = $score_pile_cards[$i][0];
+            $value = $score_pile_cards[$i];
+            $score_pile_cards[$i] = [$value];
             $value_to_index[$value] = $i;
 
             switch ($value) {
@@ -599,10 +600,14 @@ class Bouncers extends Table {
             $cards = $this->cards->pickCards(13, 'deck', $player_id);
             // Notify player about his cards
             self::notifyPlayer($player_id, 'newHand', '', [
-              'cards' => $cards,
-              'hand_num' => $handCount
+                'cards' => $cards,
             ]);
         }
+        self::notifyAllPlayers('newHandPublic', '', [
+            'cards' => $cards,
+            'points_card' => $this->cards->getCardOnTop('points')['type_arg'],
+            // TODO: Upcoming cards
+        ]);
         $this->gamestate->nextState();
     }
 
@@ -620,7 +625,7 @@ class Bouncers extends Table {
             $this->cards->moveAllCardsInLocation('cardsontable', 'deck');
 
             // Give point card to player
-            $current_point_card = $this->getCardOnTop('points');
+            $current_point_card = $this->cards->getCardOnTop('points');
             $this->cards->insertCardOnExtremePosition($current_point_card['id'], "scorepile_${winningPlayer}", /* on top */ true);
 
             // Notify
@@ -644,9 +649,6 @@ class Bouncers extends Table {
             // => just active the next player
             $player_id = self::activeNextPlayer();
             $this->setCurrentPlayer($player_id);
-            self::notifyAllPlayers('currentPlayer', '', [
-                'currentPlayer' => $this->getCurrentPlayer()
-            ]);
             self::giveExtraTime($player_id);
             $this->gamestate->nextState('nextPlayer');
         }

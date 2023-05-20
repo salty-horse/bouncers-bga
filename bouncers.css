@@ -91,14 +91,6 @@
     display: none !important;
 }
 
-#declaring_revealing_player_container {
-    float: right;
-}
-
-.gamestate_bidding #declaring_revealing_player_container {
-    display: none;
-}
-
 #undo_button {
     color: white;
 }
@@ -230,122 +222,18 @@
     display: inline;
 }
 
-.bgabnc_playertable_tricks {
+.bgabnc_playertable_scorepile {
     display: block;
     width: auto;
     margin-top: 10px;
 }
 
-.bgabnc_playertable_tricks_declare {
-    color: red;
-}
-
-.bgabnc_playertable_tricks_reveal {
-    font-weight: bold;
-}
-
 .bgabnc_tricks {
 }
 
-.gamestate_bidding .bgabnc_playertable_E .bgabnc_playertable_tricks {
-    display: none;
-}
-
-.gamestate_bidding .bgabnc_playertable_W .bgabnc_playertable_tricks {
-    display: none;
-}
-
-.gamestate_bidding .bgabnc_playertable_N .bgabnc_playertable_tricks {
-    display: none;
-}
-
-.bgabnc_firstplayer {
-    border: 2px black dashed;
-    width: 202px;
-    height: 146px;
-}
-
-/* Declare / Reveal styles */
-
-#declaretable {
-    font-size: 14px;
-    font-weight: bold;
-    max-height: 140px;
-    width: 240px; /* 240px actual size */
-    padding: 10px;
-    float: right;
-}
-
-.bgabnc_declare {
-    color: red;
-}
-
-.bgabnc_reveal {
-    font-weight: bold;
-}
-
-#revealtable {
-    height: 130px;
-    font-size: 14px;
-    font-weight: bold;
-    max-height: 140px;
-    min-width: 240px; /* 230px actual size */
-    padding: 10px;
-    float: right;
-}
-
-/* For animating the declare/reveal stuff */
-
-#bids {
-    max-width: 260px; /* Actual size 260px */
-    overflow: hidden;
-    transition: width 1500ms linear;
-    width: 0;
-    display: block;
-}
-
-#bids.bgabnc_showbid {
-    width: 260px; /* Actual size 260px */
-    visibility: visible;
-    opacity: 1;
-    margin-right: 10px;
-}
-
-#bids .bgabnc_decrev_label {
-    opacity: 0;
-    height: 16px;
-    transition: opacity 500ms linear;
-    transition-delay: 0s;
-}
-
-#bids.bgabnc_showbid .bgabnc_decrev_label {
-    opacity: 1;
-    transition: opacity 500ms ease;
-    transition-delay: 1500ms;
-}
-
-/* Screens that are less than 1236 px should wrap the declared / revealed cards and animate vertically */
-@media screen and (max-width: 1236px) {
-    #bids {
-        width: 540px; /* small screens animate height, not width */
-        height: 0;
-        margin-right: 0px;
-        margin-left: 10px;
-        margin-bottom: 0px;
-        transition: height 1500ms linear;
-        min-width: 540px;
-    }
-    #bids.bgabnc_showbid {
-        height: 150px;
-        margin-bottom: 10px;
-    }
-    #declaretable {
-        float: left;
-    }
-    #revealtable {
-        float: left;
-        margin-left: 10px;
-    }
+.bgabnc_activeplayer {
+    outline: 2px dashed black;
+    outline-offset: -2px;
 }
 
 /*** cards on table ***/
@@ -508,11 +396,6 @@
     border-top: 1px solid black;
 }
 
-#reveal_label {
-    margin-left: 5px;
-    color: red;
-}
-
 .spectatorMode #my_hand_container {
     display: none;
 }
@@ -521,11 +404,6 @@
     position: relative;
     display: inline-block;
     width: 100%;
-}
-
-#declare_label {
-    margin-left: 5px;
-    color: red;
 }
 
 /** Add hover effect to cards in hand **/
