@@ -64,69 +64,69 @@ $machinestates = [
 
     // The initial state. Please do not modify.
     1 => [
-            'name' => 'gameSetup',
-            'description' => clienttranslate('Game setup'),
-            'type' => 'manager',
-            'action' => 'stGameSetup',
-            'transitions' => ['' => NEW_HAND]
+        'name' => 'gameSetup',
+        'description' => clienttranslate('Game setup'),
+        'type' => 'manager',
+        'action' => 'stGameSetup',
+        'transitions' => ['' => STATE_NEW_HAND]
     ],
     
     // stGameSetup manages the state of the game
     
     STATE_NEW_HAND => [
-            'name' => 'newHand',
-            'description' => '',
-            'type' => 'game',
-            'action' => 'stNewHand',
-            'updateGameProgression' => true,
-            'transitions' => ['' => STATE_PLAYER_TURN]
+        'name' => 'newHand',
+        'description' => '',
+        'type' => 'game',
+        'action' => 'stNewHand',
+        'updateGameProgression' => true,
+        'transitions' => ['' => STATE_PLAYER_TURN]
     ],
     
     // Trick
     
     STATE_PLAYER_TURN => [
-            'name' => 'playerTurn',
-            'description' => clienttranslate('${actplayer} must play a card'),
-            'descriptionmyturn' => clienttranslate('${you} must play a card'),
-            'args' => 'argPlayableCards',
-            'type' => 'activeplayer',
-            'possibleactions' => ['playCard', 'displayScore'],
-            'transitions' => ['playCard' => STATE_NEXT_PLAYER]
+        'name' => 'playerTurn',
+        'description' => clienttranslate('${actplayer} must play a card'),
+        'descriptionmyturn' => clienttranslate('${you} must play a card'),
+        'args' => 'argPlayableCards',
+        'type' => 'activeplayer',
+        'possibleactions' => ['playCard', 'displayScore'],
+        'transitions' => ['playCard' => STATE_NEXT_PLAYER]
     ],
 
     STATE_NEXT_PLAYER => [
-            'name' => 'nextPlayer',
-            'description' => '',
-            'type' => 'game',
-            'action' => 'stNextPlayer',
-            'transitions' => [
-                'nextPlayer' => STATE_PLAYER_TURN,
-                'nextTrick' => STATE_PLAYER_TURN,
-                'endHand' => STATE_END_HAND
-            ]
+        'name' => 'nextPlayer',
+        'description' => '',
+        'type' => 'game',
+        'action' => 'stNextPlayer',
+        'transitions' => [
+            'nextPlayer' => STATE_PLAYER_TURN,
+            'nextTrick' => STATE_PLAYER_TURN,
+            'endHand' => STATE_END_HAND
+        ]
     ],
     
     // End of the hand (scoring, etc...)
     STATE_END_HAND => [
-            'name' => 'endHand',
-            'description' => '',
-            'type' => 'game',
-            'action' => 'stEndHand',
-            'updateGameProgression' => true,
-            'transitions' => [
-                'gameEnd' => STATE_END_GAME,
-                'newHand' => STATE_NEW_HAND
-            ]
+        'name' => 'endHand',
+        'description' => '',
+        'type' => 'game',
+        'action' => 'stEndHand',
+        'updateGameProgression' => true,
+        'transitions' => [
+            'gameEnd' => STATE_END_GAME,
+            'newHand' => STATE_NEW_HAND
+        ]
     ],
     
     // Final state.
     // Please do not modify.
     STATE_END_GAME => [
-            'name' => 'gameEnd',
-            'description' => clienttranslate('End of game'),
-            'action' => 'stGameEnd',
-            'type' => 'manager',
-            'action' => 'stGameEnd',
-            'args' => 'argGameEnd'
+        'name' => 'gameEnd',
+        'description' => clienttranslate('End of game'),
+        'action' => 'stGameEnd',
+        'type' => 'manager',
+        'action' => 'stGameEnd',
+        'args' => 'argGameEnd'
     ]
 ];

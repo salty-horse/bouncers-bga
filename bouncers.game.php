@@ -369,19 +369,124 @@ class Bouncers extends Table {
 
     function getScorePile($player_id) {
 
-        // TODO
-
         // Cards with a lower location_arg were collected earlier
-        $score_pile_cards = $this->deck->getCardsInLocation("scorepile_{$player_id}");
+        $score_pile_cards = self::getObjectListFromDB("select card_id from card where card_location = 'scorepile_${player_id}' order by card_location_arg");
+        // This is an array of arrays with card values. E.g. [[1], [2], [3]].
+
+
+
+        // Create mapping of value to index. Find the bouncers.
+        $value_to_index = [];
+        $bouncers = [];
+        for ($i = 0; $i < count($score_pile_cards); $i++) {
+            $value = $score_pile_cards[$i][0];
+            $value_to_index[$value] = $i;
+
+            switch ($value) {
+            case 11:
+                $bouncers['J'] = $i;
+                break;
+            case 12:
+                $bouncers['Q'] = $i;
+                break;
+            case 13:
+                $bouncers['K'] = $i;
+                break;
+            }
+        }
+
+        $sorted_values = array_keys($value_to_index);
+        sort($sorted_values);
 
         if ($this->getGameStateValue('specialBouncerAbilities')) {
+            // Cancel previous card
+            $bouncer_index = $bouncers['Q'] ?? null;
+            if ($bouncer_index !== null && $bouncer_index != 0) {
+                $prev = &$score_pile_cards[$bouncer_index - 1];
+                if (count($prev) == 1 && !(11 <= $prev[0] && $prev[0] <= 13)) {
+                    $prev[] = 1;
+                    $score_pile_cards[$bouncer_index][] = 1;
+                }
+            }
+
+            // Cancel lowest card
+            $bouncer_index = $bouncers['J'] ?? null;
+            if ($bouncer_index !== null) {
+                // Find lowest card
+                for ($i = 0; $i < count($sorted_values); $i++) {
+                    $value = $sorted_values[$i];
+                    if (11 <= $value && $value <= 13) continue;
+                    $elem = &$score_pile_cards[$value_to_index[$value]];
+                    if (count($elem) == 1) {
+                        $elem[] = 1;
+                        $score_pile_cards[$bouncer_index][] = 1;
+                    }
+                    break;
+
+                }
+            }
+
+            // Cancel highest card
+            $bouncer_index = $bouncers['K'] ?? null;
+            if ($bouncer_index !== null) {
+                // Find highest card
+                for ($i = count($sorted_values) - 1; $i >= 0; $i--) {
+                    $value = $sorted_values[$i];
+                    if (11 <= $value && $value <= 13) continue;
+                    $elem = &$score_pile_cards[$value_to_index[$value]];
+                    if (count($elem) == 1) {
+                        $elem[] = 1;
+                        $score_pile_cards[$bouncer_index][] = 1;
+                    }
+                    break;
+                }
+            }
         } else {
+            $bouncer_count = count($bouncers);
+            $cancelled_count = 0;
+
+            // Cancel highest at-most that many non-bouncers
+            for ($i = count($sorted_values) - 1; $i >= 0 && $bouncer_count > 0; $i--) {
+                $value = $sorted_values[$i];
+                if (11 <= $value && $value <= 13) continue;
+                $cancelled_count += 1;
+                $bouncer_count -= 1;
+                $score_pile_cards[$value_to_index[$value]][] = 1;
+            }
+
+            $bouncer_indexes = array_values($bouncers);
+            sort($bouncer_indexes);
+
+            // Cancel the first bouncers
+            for ($i = 0; $i < $cancelled_count; $i++) {
+                $score_pile_cards[$bouncer_indexes[$i]][] = 1;
+            }
+        }
+
+        $score = 0;
+        foreach ($score_pile_cards as &$item)  {
+            if (count($item) > 1)
+                continue;
+            $value = $item[0];
+            switch ($value) {
+                case 11:
+                case 12:
+                case 13:
+                    $score += 25;
+                    break;
+                case 14:
+                    $score += 11;
+                    break;
+                default:
+                    $score += $value;
+                    break;
+            }
         }
 
         return [
-            'score' => 0,
-            'score_pile' => $score_pile;
-        ]
+            'score' => $score,
+            'score_pile' => $score_pile_cards,
+        ];
     }
 
 /************** End Other helper functions ****************/
@@ -544,7 +649,7 @@ class Bouncers extends Table {
 
             // Give point card to player
             $current_point_card = $this->getCardOnTop('points');
-            $this->cards->insertCardOnExtremePosition($current_point_card['id'], "scorepile_${winningPlayer}", true);
+            $this->cards->insertCardOnExtremePosition($current_point_card['id'], "scorepile_${winningPlayer}", /* on top */ true);
 
             // Notify
             $players = self::loadPlayersBasicInfos();

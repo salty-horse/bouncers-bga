@@ -30,6 +30,11 @@ $gameinfos = array(
 // Game publisher
 'publisher' => '(Public Domain)',
 
+'presentation' => [
+    totranslate("A sort of cross between GOPS and Hearts."),
+    totranslate("The trick winner collects a bad points card, but can try to cancel it out by collecting a bouncer."),
+],
+
 // Url of game publisher website
 'publisher_website' => '',
 
