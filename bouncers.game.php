@@ -519,7 +519,7 @@ class Bouncers extends Table {
             'rank' => $currentCard['type_arg'],
             'rank_displayed' => $this->rank_label[$currentCard['type_arg']],
             'suit' => $currentCard['type'],
-            'suit_displayed' => '<span class="bgann_icon bgann_suit'.$currentCard['type'] . '"></span>',
+            'suit_displayed' => '<span class="bgabnc_icon bgabnc_suit'.$currentCard['type'] . '"></span>',
             'currentPlayer' => $this->getCurrentPlayer()
         ));
 

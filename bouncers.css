@@ -68,26 +68,26 @@
     flex-basis: auto;
 }
 
-.bgann_container {
+.bgabnc_container {
     height: auto;
     display: flex;
 }
 
-.bgann_section {
+.bgabnc_section {
     flex-direction: row;
     width: auto;
     display: block;
 }
 
-.bgann_red {
+.bgabnc_red {
     color: red;
 }
 
-.bgann_invisible {
+.bgabnc_invisible {
     visibility: hidden;
 }
 
-.bgann_hidden {
+.bgabnc_hidden {
     display: none !important;
 }
 
@@ -105,16 +105,16 @@
 
 /** Player Score Area **/
 
-.bgann_round_score {
+.bgabnc_round_score {
     padding-left: 46px;
 }
 
-.bgann_round_score_icon:before {
+.bgabnc_round_score_icon:before {
     background-color: blue;
     border-radius: 50px;
 }
 
-.bgann_badge_ribbon {
+.bgabnc_badge_ribbon {
     display: inline-block;
     position: relative;
     background: #f9a11a;
@@ -123,8 +123,8 @@
     border-radius: 50px;
     top: -3px;
 }
-.bgann_badge_ribbon:before,
-.bgann_badge_ribbon:after {
+.bgabnc_badge_ribbon:before,
+.bgabnc_badge_ribbon:after {
     content: '';
     position: absolute;
     border-bottom: 5px solid #f9a11a;
@@ -134,7 +134,7 @@
     left: 0px;
     transform: rotate(-140deg);
 }
-.bgann_badge_ribbon:after {
+.bgabnc_badge_ribbon:after {
     left: auto;
     right: 0px;
     transform: rotate(140deg);
@@ -157,11 +157,11 @@
     height: 410px;
 }
 
-.bgann_playertablename {
+.bgabnc_playertablename {
     font-weight: bold;
 }
 
-.bgann_playertable {
+.bgabnc_playertable {
     position: absolute;
     text-align: center;
     width: 206px;
@@ -169,39 +169,39 @@
     display: inline-block;
 }
 
-.bgann_playertable_N {
+.bgabnc_playertable_N {
     margin-left: 236px;
 }
 
-.bgann_playertable_S {
+.bgabnc_playertable_S {
     margin-left: 236px;
     margin-top: 130px;
 }
 
 /* For 4 players we need more space */
-.player_count_4 .bgann_playertable_S {
+.player_count_4 .bgabnc_playertable_S {
     margin-top: 240px;
 }
 
-.bgann_playertable_W {
+.bgabnc_playertable_W {
     margin-top: 0px;
 }
 
 /* For 4 players we need more space */
-.player_count_4 .bgann_playertable_W {
+.player_count_4 .bgabnc_playertable_W {
     margin-top: 100px;
 }
 
-.bgann_playertable_E {
+.bgabnc_playertable_E {
     margin-top: 0px;
     margin-left: 472px;
 }
 
-.player_count_4 .bgann_playertable_E {
+.player_count_4 .bgabnc_playertable_E {
     margin-top: 100px;
 }
 
-.bgann_playertablecard {
+.bgabnc_playertablecard {
     display: inline-block;
     position: relative;
     margin-top: 5px;
@@ -230,40 +230,40 @@
     display: inline;
 }
 
-.bgann_dealerindicator {
+.bgabnc_dealerindicator {
     color: black;
 }
 
-.bgann_playertable_tricks {
+.bgabnc_playertable_tricks {
     display: block;
     width: auto;
     margin-top: 10px;
 }
 
-.bgann_playertable_tricks_declare {
+.bgabnc_playertable_tricks_declare {
     color: red;
 }
 
-.bgann_playertable_tricks_reveal {
+.bgabnc_playertable_tricks_reveal {
     font-weight: bold;
 }
 
-.bgann_tricks {
+.bgabnc_tricks {
 }
 
-.gamestate_bidding .bgann_playertable_E .bgann_playertable_tricks {
+.gamestate_bidding .bgabnc_playertable_E .bgabnc_playertable_tricks {
     display: none;
 }
 
-.gamestate_bidding .bgann_playertable_W .bgann_playertable_tricks {
+.gamestate_bidding .bgabnc_playertable_W .bgabnc_playertable_tricks {
     display: none;
 }
 
-.gamestate_bidding .bgann_playertable_N .bgann_playertable_tricks {
+.gamestate_bidding .bgabnc_playertable_N .bgabnc_playertable_tricks {
     display: none;
 }
 
-.bgann_firstplayer {
+.bgabnc_firstplayer {
     border: 2px black dashed;
     width: 202px;
     height: 146px;
@@ -280,11 +280,11 @@
     float: right;
 }
 
-.bgann_declare {
+.bgabnc_declare {
     color: red;
 }
 
-.bgann_reveal {
+.bgabnc_reveal {
     font-weight: bold;
 }
 
@@ -308,21 +308,21 @@
     display: block;
 }
 
-#bids.bgann_showbid {
+#bids.bgabnc_showbid {
     width: 260px; /* Actual size 260px */
     visibility: visible;
     opacity: 1;
     margin-right: 10px;
 }
 
-#bids .bgann_decrev_label {
+#bids .bgabnc_decrev_label {
     opacity: 0;
     height: 16px;
     transition: opacity 500ms linear;
     transition-delay: 0s;
 }
 
-#bids.bgann_showbid .bgann_decrev_label {
+#bids.bgabnc_showbid .bgabnc_decrev_label {
     opacity: 1;
     transition: opacity 500ms ease;
     transition-delay: 1500ms;
@@ -339,7 +339,7 @@
         transition: height 1500ms linear;
         min-width: 540px;
     }
-    #bids.bgann_showbid {
+    #bids.bgabnc_showbid {
         height: 150px;
         margin-bottom: 10px;
     }
@@ -354,7 +354,7 @@
 
 /*** cards on table ***/
 
-.bgann_cardontable {
+.bgabnc_cardontable {
     position: absolute;
     width: 72px;
     height: 96px;
@@ -362,100 +362,100 @@
     z-index: 100;
 }
 
-.bgann_suit_spade {
+.bgabnc_suit_spade {
     background-position-y: -200%;
 }
 
-.bgann_suit_heart {
+.bgabnc_suit_heart {
     background-position-y: -300%;
 }
 
-.bgann_suit_club {
+.bgabnc_suit_club {
     background-position-y: 0%;
 }
 
-.bgann_suit_diamond {
+.bgabnc_suit_diamond {
     background-position-y: -100%;
 }
 
-.bgann_rank_2 {
+.bgabnc_rank_2 {
     background-position-x: 0%;
 }
 
-.bgann_rank_3 {
+.bgabnc_rank_3 {
     background-position-x: -100%;
 }
 
-.bgann_rank_4 {
+.bgabnc_rank_4 {
     background-position-x: -200%;
 }
 
-.bgann_rank_5 {
+.bgabnc_rank_5 {
     background-position-x: -300%;
 }
 
-.bgann_rank_6 {
+.bgabnc_rank_6 {
     background-position-x: -400%;
 }
 
-.bgann_rank_7 {
+.bgabnc_rank_7 {
     background-position-x: -500%;
 }
 
-.bgann_rank_8 {
+.bgabnc_rank_8 {
     background-position-x: -600%;
 }
 
-.bgann_rank_9 {
+.bgabnc_rank_9 {
     background-position-x: -700%;
 }
 
-.bgann_rank_10 {
+.bgabnc_rank_10 {
     background-position-x: -800%;
 }
 
-.bgann_rank_11 {
+.bgabnc_rank_11 {
     background-position-x: -900%;
 }
 
-.bgann_rank_12 {
+.bgabnc_rank_12 {
     background-position-x: -1000%;
 }
 
-.bgann_rank_13 {
+.bgabnc_rank_13 {
     background-position-x: -1100%;
 }
 
-.bgann_rank_14 {
+.bgabnc_rank_14 {
     background-position-x: -1200%;
 }
 
-.bgann_trump_red {
+.bgabnc_trump_red {
     color: red;
     font-size: 40px;
 }
 
-.bgann_trump_black {
+.bgabnc_trump_black {
     color: black;
     font-size: 40px;
 }
 
-.bgann_trump_none {
+.bgabnc_trump_none {
     color: black;
     font-size: 16px;
 }
 
-.player_count_3 .bgann_trump_suit.bgann_trump_none {
+.player_count_3 .bgabnc_trump_suit.bgabnc_trump_none {
     line-height: 3;
 }
 
-.player_count_4 #trumpSuit:not(.bgann_trump_none) {
+.player_count_4 #trumpSuit:not(.bgabnc_trump_none) {
     font-size: 24px;
     line-height: 0.7;
 }
 
 /*** for notifications ***/
-.bgann_icon {
+.bgabnc_icon {
     background: no-repeat;
     display: inline-block;
     margin: 0px 2px;
@@ -465,27 +465,27 @@
     background-position: center;
 }
 
-.bgann_suit2 {
+.bgabnc_suit2 {
     background-image: url("img/spade-icon.png");
 }
 
-.bgann_suit3 {
+.bgabnc_suit3 {
     background-image: url("img/heart-icon.png");
 }
 
-.bgann_suit0 {
+.bgabnc_suit0 {
     background-image: url("img/club-icon.png");
 }
 
-.bgann_suit1 {
+.bgabnc_suit1 {
     background-image: url("img/diamond-icon.png");
 }
 
-.bgann_highlight_trump .bgann_trump {
+.bgabnc_highlight_trump .bgabnc_trump {
     z-index: 0;
 }
 
-.bgann_highlight_trump .bgann_trump::after {
+.bgabnc_highlight_trump .bgabnc_trump::after {
     content: '';
     position: absolute;
     top: 0;
@@ -501,11 +501,11 @@
     border: 0px !important;
 }
 
-.bgann_highlight_selected .gamestate_bidding .stockitem_selected {
+.bgabnc_highlight_selected .gamestate_bidding .stockitem_selected {
     z-index: 0;
 }
 
-.bgann_highlight_selected .gamestate_bidding .stockitem_selected::after {
+.bgabnc_highlight_selected .gamestate_bidding .stockitem_selected::after {
     content: '';
     position: absolute;
     top: 0;
@@ -575,24 +575,24 @@
 }
 
 /** Add hover effect to cards in hand **/
-.notouch-device .bgann_cardhover .stockitem:hover:not(.bgann_unplayable) {
+.notouch-device .bgabnc_cardhover .stockitem:hover:not(.bgabnc_unplayable) {
     margin-top: -16px !important;
 }
 
-.notouch-device .bgann_cardhover .stockitem:not(.bgann_unplayable) {
+.notouch-device .bgabnc_cardhover .stockitem:not(.bgabnc_unplayable) {
     transition: margin-top 100ms linear;
 }
 
-.bgann_highlight_playable .stockitem.bgann_unplayable {
+.bgabnc_highlight_playable .stockitem.bgabnc_unplayable {
     filter: brightness(.8);
     pointer-events: none;
 }
 
-.bgann_raise_selected .gamestate_bidding .stockitem_selected {
+.bgabnc_raise_selected .gamestate_bidding .stockitem_selected {
     margin-top: -16px !important;
 }
 
-.bgann_raise_selected .gamestate_bidding .stockitem_selected::before {
+.bgabnc_raise_selected .gamestate_bidding .stockitem_selected::before {
     content: "";
     display: block;
     background-color: red;
