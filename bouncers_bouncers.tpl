@@ -45,8 +45,6 @@
                 <span class="bgabnc_playertable_tricks" id="trick_info_{PLAYER_ID}">
                     <span class="">Tricks taken: </span>
                     <span id="tricks_{PLAYER_ID}">0</span>
-                    <span class="bgabnc_bid"> | Bid: </span>
-                    <span id="bid_{PLAYER_ID}" class="bgabnc_bid bgabnc_bid_value">?</span>
                 </span>
             </div>
             <!-- END player -->

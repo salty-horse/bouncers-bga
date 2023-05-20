@@ -532,11 +532,6 @@ function (dojo, declare, domStyle, lang, attr) {
         // if they have declared or revealed, and their bid
         showTrickLabels: function(playerId, bidValue, reveal) {
             if (playerId) {
-                this.updateValueInNode("bid_" + playerId, bidValue);
-                dojo.addClass("trick_info_" + playerId, "bgabnc_declare");
-                if (reveal) {
-                    dojo.addClass("trick_info_" + playerId, "bgabnc_reveal");
-                }
             }
         },
 
@@ -546,11 +541,6 @@ function (dojo, declare, domStyle, lang, attr) {
         resetTrickLabels: function() {
             // No labels should be declared or revealed
             dojo.query(".bgabnc_playertable_tricks").removeClass("bgabnc_declare bgabnc_reveal");
-
-            // All bids should be reset to ?
-            dojo.query(".bgabnc_bid_value").forEach(function(node) {
-                node.innerHTML = "?";
-            });
         },
 
         // Reset the number of tricks won by all players to 0

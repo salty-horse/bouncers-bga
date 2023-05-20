@@ -512,14 +512,14 @@ class Bouncers extends Table {
 
         // And notify
         self::notifyAllPlayers('playCard', clienttranslate('${player_name} plays ${rank_displayed} ${suit_displayed}'), [
-            'i18n' => array('suit_displayed', 'rank_displayed'),
+            'i18n' => ['suit_displayed', 'rank_displayed'],
             'card_id' => $card_id,
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
-            'rank' => $currentCard['type_arg'],
-            'rank_displayed' => $this->rank_label[$currentCard['type_arg']],
-            'suit' => $currentCard['type'],
-            'suit_displayed' => '<span class="bgabnc_icon bgabnc_suit'.$currentCard['type'] . '"></span>',
+            'rank' => $current_card['type_arg'],
+            'rank_displayed' => $this->rank_label[$current_card['type_arg']],
+            'suit' => $current_card['type'],
+            'suit_displayed' => '<span class="bgabnc_icon bgabnc_suit'.$current_card['type'] . '"></span>',
             'currentPlayer' => $this->getCurrentPlayer()
         ]);
 
