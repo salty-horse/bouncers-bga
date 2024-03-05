@@ -353,7 +353,6 @@ class Bouncers extends Table {
     function getScorePile($player_id) {
         // Cards with a lower location_arg were collected earlier
         $score_pile_cards = self::getObjectListFromDB("select card_type_arg from card where card_location = 'scorepile_${player_id}' order by card_location_arg", true);
-         self::dump('my_var', $score_pile_cards);
 
         // Create mapping of value to index. Find the bouncers. Turn values into arrays with single value.
         // (E.g. [[1], [2], [3]])
@@ -536,8 +535,8 @@ class Bouncers extends Table {
         // This is the end of the trick
         $cardsOnTable = $this->cards->getCardsInLocation('cardsontable');
 
-        if (count($cardsOnTable) != $this->getPlayerCount()) {
-            throw new feException(self::_('Invalid trick card count'));
+        if (count($cardsOnTable) != 3) {
+            throw new BgaVisibleSystemException('Invalid trick card count');
         }
 
         $next_player_table = $this->getNextPlayerTable();
@@ -617,7 +616,7 @@ class Bouncers extends Table {
             $winningCard = $this->getTrickWinner();
             $winningPlayer = $winningCard['location_arg'];
 
-            // Active this player => he's the one who starts the next trick
+            // The winner starts the next trick
             $this->gamestate->changeActivePlayer($winningPlayer);
             $this->setCurrentPlayer($winningPlayer);
 
@@ -630,12 +629,14 @@ class Bouncers extends Table {
 
             // Notify
             $players = self::loadPlayersBasicInfos();
-            self::notifyAllPlayers('trickWin', clienttranslate('${player_name} wins the trick'), [
-                    'player_id' => $winningPlayer,
-                    'player_name' => $players[$winningPlayer]['player_name'],
+            self::notifyAllPlayers('trickWin', clienttranslate('${player_name} wins the trick and the points card ${points}'), [
+                'player_id' => $winningPlayer,
+                'player_name' => $players[$winningPlayer]['player_name'],
+                'points' => $this->rank_label[$current_point_card['type_arg']],
+                'score_pile' => $this->getScorePile($winningPlayer),
             ]);
 
-            self::setGameStateValue("ledSuit", 0);
+            self::setGameStateValue('ledSuit', 0);
 
             if ($this->cards->countCardInLocation('hand') == 0) {
                 // End of the hand

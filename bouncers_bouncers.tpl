@@ -23,16 +23,8 @@
 
     See your "view" PHP file to check how to set variables and control blocks
 -->
-<div id="table" class="player_count_{PLAYER_COUNT}">
-    <div id="declarerevealtable">
-        <h3 class="whiteblock">
-            <span id="round_name_container" class="bgann_invisible">
-                <span class="">{ROUND_LABEL} </span>
-                <span id="round_name">1</span>
-            </span>
-        </h3>
-    </div>
-    <div id="bgabnc_middleRow">
+<div id="table">
+    <div id="bgabnc_playarea">
         <div id="playertables">
 
             <!-- BEGIN player -->
@@ -71,7 +63,7 @@
 
 <script type="text/javascript">
 
-var jstpl_cardontable = '<div class="bgabnc_cardontable bgabnc_suit_${suit} bgabnc_rank_${rank}" id="cardontable_${player_id}"></div>';
+var jstpl_cardontable = '<div class="bgabnc_cardontable bgabnc_suit_${suit} bgabnc_rank_${rank}" id="bgabnc_cardontable_${player_id}"></div>';
 var jstpl_player_round_score = '\<div class="bgabnc_round_score">\
     \<span id="player_round_score_${id}" class="player_score_value">0\</span>\
     \<span class="fa fa-star bgabnc_round_score_icon"/>\

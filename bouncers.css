@@ -47,16 +47,7 @@
 
 /** General Styles **/
 
-/* Smallest Content width: 940px */
-/* Smallest Overall size: 1186 */
-/* Overall size: 910 + 240 ? */
-/* There is an unexplained 7px somewhere... */
-
-/* Screens that are less than 1236 px */
-@media screen and (max-width: 1236px) {
-}
-
-#bgabnc_middleRow {
+#bgabnc_playarea {
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
@@ -64,7 +55,7 @@
     margin-bottom: 10px;
 }
 
-#bgabnc_middleRow > div {
+#bgabnc_playarea > div {
     flex-basis: auto;
 }
 
@@ -144,11 +135,6 @@
     margin: auto;
 }
 
-/* For 4 players we need more space */
-.player_count_4 #playertables {
-    height: 410px;
-}
-
 .bgabnc_playertablename {
     font-weight: bold;
 }
@@ -170,27 +156,13 @@
     margin-top: 130px;
 }
 
-/* For 4 players we need more space */
-.player_count_4 .bgabnc_playertable_S {
-    margin-top: 240px;
-}
-
 .bgabnc_playertable_W {
     margin-top: 0px;
-}
-
-/* For 4 players we need more space */
-.player_count_4 .bgabnc_playertable_W {
-    margin-top: 100px;
 }
 
 .bgabnc_playertable_E {
     margin-top: 0px;
     margin-left: 472px;
-}
-
-.player_count_4 .bgabnc_playertable_E {
-    margin-top: 100px;
 }
 
 .bgabnc_playertablecard {
@@ -209,17 +181,6 @@
     font-weight: bold;
     margin-left: 264px;
     height: 60px;
-}
-
-/* For 4 players we need more space */
-.player_count_4 #bgabnc_pointsContainer {
-    margin-top: 190px;
-    height: 20px;
-    font-size: 16px;
-}
-
-.player_count_4 #bgabnc_pointsContainer > div {
-    display: inline;
 }
 
 .bgabnc_playertable_scorepile {
@@ -406,32 +367,7 @@
     width: 100%;
 }
 
-/** Add hover effect to cards in hand **/
-.notouch-device .bgabnc_cardhover .stockitem:hover:not(.bgabnc_unplayable) {
-    margin-top: -16px !important;
-}
-
-.notouch-device .bgabnc_cardhover .stockitem:not(.bgabnc_unplayable) {
-    transition: margin-top 100ms linear;
-}
-
-.bgabnc_highlight_playable .stockitem.bgabnc_unplayable {
+.stockitem.bgabnc_unplayable {
     filter: brightness(.8);
     pointer-events: none;
-}
-
-.bgabnc_raise_selected .gamestate_bidding .stockitem_selected {
-    margin-top: -16px !important;
-}
-
-.bgabnc_raise_selected .gamestate_bidding .stockitem_selected::before {
-    content: "";
-    display: block;
-    background-color: red;
-    border-radius: 50%;
-    width: 10px;
-    height: 10px;
-    position: relative;
-    top: -15px;
-    left: 30px;
 }

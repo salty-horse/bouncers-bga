@@ -18,22 +18,8 @@ $gameinfos = array(
 
 'game_name' => 'Bouncers',
 
-// Game designer (or game designers, separated by commas)
-'designer' => 'David Parlett',
-
-// Game artist (or game artists, separated by commas)
-'artist' => 'Unknown',
-
-// Year of FIRST publication of this game. Can be negative.
-'year' => 0,
-
 // Game publisher
 'publisher' => '(Public Domain)',
-
-'presentation' => [
-    totranslate("A sort of cross between GOPS and Hearts."),
-    totranslate("The trick winner collects a bad points card, but can try to cancel it out by collecting a bouncer."),
-],
 
 // Url of game publisher website
 'publisher_website' => '',
@@ -79,18 +65,6 @@ $gameinfos = array(
 // Is this game cooperative (all players wins together or loose together)
 'is_coop' => 0,
 
-// Complexity of the game, from 0 (extremely simple) to 5 (extremely complex)
-'complexity' => 3,
-
-// Luck of the game, from 0 (absolutely no luck in this game) to 5 (totally luck driven)
-'luck' => 3,
-
-// Strategy of the game, from 0 (no strategy can be setup) to 5 (totally based on strategy)
-'strategy' => 3,
-
-// Diplomacy of the game, from 0 (no interaction in this game) to 5 (totally based on interaction and discussion between players)
-'diplomacy' => 0,
-
 // Colors attributed to players
 'player_colors' => ['ff0000', '008000', '0000ff'],
 
@@ -105,7 +79,7 @@ $gameinfos = array(
     //  default: 740
     //  maximum possible value: 740 (ie: your game interface should fit with a 740px width (correspond to a 1024px screen)
     //  minimum possible value: 320 (the lowest value you specify, the better the display is on mobile)
-    'min' => 728,
+    'min' => 720,
 
     // Maximum width
     //  default: null (ie: no limit, the game interface is as big as the player's screen allows it).
@@ -113,16 +87,6 @@ $gameinfos = array(
     //  minimum possible value: 740
     'max' => null
 ],
-
-// Games categories
-//  You can attribute a maximum of FIVE "tags" for your game.
-//  Each tag has a specific ID (ex: 22 for the category "Prototype", 101 for the tag "Science-fiction theme game")
-//  Please see the "Game meta information" entry in the BGA Studio documentation for a full list of available tags:
-//  http://en.doc.boardgamearena.com/Game_meta-information:_gameinfos.inc.php
-//  IMPORTANT: this list should be ORDERED, with the most important tag first.
-//  IMPORTANT: it is mandatory that the FIRST tag is 1, 2, 3 and 4 (= game category)
-'tags' => [1],
-
 
 //////// BGA SANDBOX ONLY PARAMETERS (DO NOT MODIFY)
 

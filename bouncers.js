@@ -37,26 +37,13 @@ function (dojo, declare, domStyle, lang, attr) {
     return declare("bgagame.bouncers", ebg.core.gamegui, {
 
         constructor: function() {
-            // Here, you can init the global variables of your user interface
-            // Example:
-            // this.myGlobalValue = 0;
-
             this.playerHand = null;
             this.cardwidth = 72;
             this.cardheight = 96;
             this.lastItemsSelected = [];
 
-            // Globals
-            this.shouldGiveCardsToWinner = false;
-
             // Timeouts
-            this.trickWinDelay = 500;
-            this.winnerTakeDuration = 500;
-            this.fadeOutDuration = 500;
             this.playCardDuration = 500;
-            this.playForcedCardDelay = 100;
-
-            this.playForcedCardFuture = null;
         },
 
         /*
@@ -75,21 +62,12 @@ function (dojo, declare, domStyle, lang, attr) {
             console.log('gamedatas:', gamedatas);
             dojo.destroy('debug_output');
 
-            // Show hand number
-            this.setNodeInvisible("round_name_container", false);
-            this.updateRoundNum(this.gamedatas.handNum);
-
-            // Remove elements which spectators do not need
-            if (this.isSpectator) {
-                this.setNodeHidden("my_hand_container", true);
-            }
-
             // Player hand
             this.playerHand = this.setupCardStocks('myhand', 'onPlayerHandSelectionChanged');
             // Cards in player's hand
             this.addCardsToStock(this.playerHand, this.gamedatas.hand);
             this.unmarkUnplayableCards();
-            this.handlePlayableCards(this.gamedatas.playableCards);
+            this.markCardsUnplayable(this.gamedatas.playableCards);
 
             this.showPointsCard(this.gamedatas.points_card);
 
@@ -172,29 +150,6 @@ function (dojo, declare, domStyle, lang, attr) {
         },
 
         ///////////////////////////////////////////////////
-        //// Utility functions for game preferences
-
-        shouldAddCardHoverEffect: function() {
-            return this.prefs[100].value == 1;
-        },
-
-        shouldSortCardsInHeartsOrder: function() {
-            return this.prefs[101].value == 2;
-        },
-
-        shouldHighlightPlayableCards: function() {
-            return this.prefs[103].value == 1;
-        },
-
-        shouldPlayForcedCards: function() {
-            return false; // this.prefs[104].value == 1 && !this.isReadOnly();
-        },
-
-        shouldHighlightTrickWins: function() {
-            return this.prefs[106].value == 1 && !this.isReadOnly();
-        },
-
-        ///////////////////////////////////////////////////
         //// Game & client states
 
         // onEnteringState: this method is called each time we are entering into a new game state.
@@ -207,9 +162,8 @@ function (dojo, declare, domStyle, lang, attr) {
             case 'playerTurn':
                 this.markActivePlayerTable(true);
                 this.playerHand.setSelectionMode(2);
-                this.addHoverEffectToCards("myhand", true);
                 if (args && args.args && args.args._private && args.args._private.playableCards) {
-                    this.handlePlayableCards(args.args._private.playableCards);
+                    this.markCardsUnplayable(args.args._private.playableCards);
                 }
                 break;
 
@@ -332,21 +286,6 @@ function (dojo, declare, domStyle, lang, attr) {
            Card UI utility functions
          */
 
-        // Given a set of playable cards from the server, do all required actions
-        handlePlayableCards: function(playableCards) {
-            this.markCardsUnplayable(playableCards);
-            if (!this.shouldPlayForcedCards()) {
-                return;
-            }
-            var playableCardArray = Object.entries(playableCards).map(entry => entry[1])
-            if (playableCardArray.length == 1) {
-                var that = this;
-                this.playForcedCardFuture = setTimeout(function() {
-                    that.playCard(playableCardArray[0]);
-                }, this.playForcedCardDelay);
-            }
-        },
-
         // Mark cards in your hand which are not in the playableCards array as unplayable
         // Note: playableCards is an map sent from the server - they are not client-side cards
         markCardsUnplayable: function(playableCards) {
@@ -373,63 +312,15 @@ function (dojo, declare, domStyle, lang, attr) {
             }
         },
 
-        // Add a hover effect to cards within the containing id
-        addHoverEffectToCards: function(containingId, enable) {
-            if (enable && this.shouldAddCardHoverEffect()) {
-                dojo.addClass(containingId, "bgabnc_cardhover");
-            } else {
-                dojo.removeClass(containingId, "bgabnc_cardhover");
-            }
-        },
-
         // This is the order that cards are sorted
         getCardWeight: function(suit, rank) {
             return suit * 13 + (parseInt(rank) - 2);
         },
 
-        /*
-           Generic UI Utility methods
-         */
-
-        // Make nodeId disappear
-        setNodeHidden: function(nodeId, hidden) {
-            if (hidden) {
-                dojo.addClass(nodeId, "bgabnc_hidden");
-            } else {
-                dojo.removeClass(nodeId, "bgabnc_hidden");
-            }
-        },
-
-        // Make nodeId disappear, but have it still be 'present' in the dom
-        setNodeInvisible: function(nodeId, hidden) {
-            if (hidden) {
-                dojo.addClass(nodeId, "bgabnc_invisible");
-            } else {
-                dojo.removeClass(nodeId, "bgabnc_invisible");
-            }
-        },
-
-        // Retrieve the contents of nodeId
-        getValueFromNode: function(nodeId) {
-            return dojo.attr(dojo.byId(nodeId), 'innerHTML');
-        },
-
-        // Update the contents of nodeId with the supplied value
-        updateValueInNode: function(nodeId, value) {
-            var node = dojo.byId(nodeId);
-            if (node != null) {
-                node.textContent = value;
-            }
-        },
-
-        /*
-           Scoring UI utility methods
-         */
-
         // Update the game scores of all players
         updateGameScores: function(gameScores) {
             for (var playerId in gameScores) {
-                this.updatePlayerScore(parseInt(playerId), parseInt(gameScores[parseInt(playerId)]));
+                this.updatePlayerScore(playerId, gameScores[playerId]);
             }
         },
 
@@ -438,43 +329,6 @@ function (dojo, declare, domStyle, lang, attr) {
             if (this.scoreCtrl[playerId]) {
                 this.scoreCtrl[playerId].toValue(playerScore);
             }
-        },
-
-        // Update the round number tracker
-        updateRoundNum: function(roundNum) {
-            var roundNumSpan = dojo.byId("round_name");
-            if (roundNumSpan) {
-                roundNumSpan.textContent = roundNum;
-            }
-        },
-
-        /*
-           Declare/Reveal related UI utility methods
-         */
-
-        // Announce the information about who has declared/revealed
-        informUsersPlayerDeclaredOrRevealed: function(decRevInfo) {
-            if (!decRevInfo.playerId) {
-                return;
-            }
-            var reveal = Object.keys(decRevInfo.cards).length > 0;
-            var message;
-            if (decRevInfo.playerId != this.player_id || this.isSpectator) {
-                // Someone else declared or revealed
-                if (reveal) {
-                    message = decRevInfo.playerName + _(" has revealed");
-                } else {
-                    message = decRevInfo.playerName + _(" has declared");
-                }
-            } else {
-                // You have declared or revealed
-                if (reveal) {
-                    message = _("You have revealed");
-                } else {
-                    message = _("You have declared");
-                }
-            }
-            this.showMessage(message, "info");
         },
 
         /*
@@ -498,60 +352,21 @@ function (dojo, declare, domStyle, lang, attr) {
             if (cardCameFromSomeoneElse) {
                 // Some opponent played a card (or spectator is observing)
                 // Move card from player panel
-                this.placeOnObject('cardontable_'+player_id, 'overall_player_board_'+player_id);
+                this.placeOnObject('bgabnc_cardontable_'+player_id, 'overall_player_board_'+player_id);
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
                 if ($('myhand_item_'+card_id)) {
-                    this.placeOnObject('cardontable_'+player_id, 'myhand_item_'+card_id);
+                    this.placeOnObject('bgabnc_cardontable_'+player_id, 'myhand_item_'+card_id);
                     this.playerHand.removeFromStockById(card_id);
                 }
             }
             // In any case: move it to its final destination
-            this.slideToObject('cardontable_'+player_id, 'bgabnc_playertablecard_'+player_id).play();
+            this.slideToObject('bgabnc_cardontable_'+player_id, 'bgabnc_playertablecard_'+player_id).play();
 
             // Adjust card overlap now that there are fewer cards in hand
             if (!cardCameFromSomeoneElse) {
                 this.adjustCardOverlapToAvailableSpace();
-            }
-        },
-
-        // Move all the cards currently played on the table to the trick winner
-        // and update relevant trick counts
-        giveAllCardsToPlayer: function(winner_id, playerTrickCounts) {
-            for (var player_id in this.gamedatas.players) {
-                // There's a race condition between cards leaving the table and cards
-                // being placed on the table. In order to avoid that, we clone the original
-                // card and replace it with one that has a different id.
-                var node = dojo.byId('cardontable_'+player_id);
-                var newnode = lang.clone(node);
-                if (newnode) {
-                   attr.set(newnode, "id", 'cardfromtable_'+player_id);
-                   dojo.place(newnode, 'bgabnc_playertablecard_'+player_id);
-                }
-                dojo.destroy(node);
-
-                this.moveCardToWinner(winner_id, player_id);
-            }
-        },
-
-        // Move an individual card that player_id played to the trick winner
-        moveCardToWinner: function(winner_id, player_id) {
-            if (this.shouldGiveCardsToWinner) {
-                // Animate cards to the winner player off screen
-                var anim;
-                if (winner_id == this.player_id && dojo.byId("maingameview_menufooter")) {
-                    anim = this.slideToObject('cardfromtable_'+player_id, "maingameview_menufooter");
-                } else {
-                    anim = this.slideToObject('cardfromtable_'+player_id, 'overall_player_board_'+winner_id);
-                }
-                dojo.connect(anim, 'onEnd', function(node) { dojo.destroy(node);});
-                anim.play();
-            } else {
-                // Animate cards to the card which won, not the player
-                var anim = this.slideToObject('cardfromtable_' + player_id, 'bgabnc_playertablecard_' + winner_id, this.winnerTakeDuration);
-                dojo.connect(anim, 'onEnd', this, 'fadeOutAndDestroy');
-                anim.play();
             }
         },
 
@@ -565,7 +380,6 @@ function (dojo, declare, domStyle, lang, attr) {
         },
 
         updateScorePile: function(player_id, score_pile) {
-            console.log('updateScorePile', score_pile);
             document.getElementById(`bgabnc_scorepile_total_${player_id}`).textContent = score_pile.score;
             let pile = [];
             for (let card of score_pile.score_pile) {
@@ -623,7 +437,6 @@ function (dojo, declare, domStyle, lang, attr) {
 
         // Play an individual card
         playCard: function(card) {
-            clearTimeout(this.playForcedCardFuture);
             this.ajaxCallWrapper('playCard', { id: card.id });
             this.playerHand.unselectAll();
         },
@@ -660,14 +473,18 @@ function (dojo, declare, domStyle, lang, attr) {
         */
 
         setupNotifications: function() {
-            dojo.subscribe('newHand', this, 'notif_newHand');
-            dojo.subscribe('newHandPublic', this, 'notif_newHandPublic');
-            dojo.subscribe('playCard', this, 'notif_playCard');
+			[
+            	'newHand',
+            	'newHandPublic',
+            	'playCard',
+            	'trickWin',
+            	'points',
+            	'newScores',
+			].forEach(s => {
+				dojo.subscribe(s, this, `notif_${s}`);
+			});
             this.notifqueue.setSynchronous('playCard', (this.playCardDuration));
-            dojo.subscribe('trickWin', this, 'notif_trickWin');
-            this.notifqueue.setSynchronous('trickWin', (this.trickWinDelay + this.winnerTakeDuration + this.fadeOutDuration));
-            dojo.subscribe('points', this, 'notif_points');
-            dojo.subscribe('newScores', this, 'notif_newScores');
+            this.notifqueue.setSynchronous('trickWin', 0);
         },
 
         // From this point and below, you can write your game notifications handling methods
@@ -711,20 +528,26 @@ function (dojo, declare, domStyle, lang, attr) {
             this.unmarkUnplayableCards();
         },
 
-        // A trick was won
-        // This information is sent to all players
-        notif_trickWin: function(notif) {
-            var winner_id = notif.args.player_id;
-            var playerTrickCounts = notif.args.playerTrickCounts;
-            if (this.isReadOnly()) {
-                this.giveAllCardsToPlayer(winner_id, playerTrickCounts);
-            } else {
-                // The timeout allows players to view the cards that are played before they're gone.
-                var that = this;
-                setTimeout(function() {
-                    that.giveAllCardsToPlayer(winner_id, playerTrickCounts);
-                }, this.trickWinDelay);
+        notif_trickWin: async function(notif) {
+            let winner_id = notif.args.player_id;
+
+            // Move all cards on table to given table, then destroy them
+            for (let player_id in this.gamedatas.players) {
+                if (player_id == winner_id) {
+                    // Make sure the moved card is above the winner card
+                    document.getElementById('bgabnc_pointsCard').style.zIndex = 3;
+                    // TODO: Doesn't work because not relative/aboslute. Use element animate()?
+                    this.slideToObjectAndDestroy('bgabnc_pointsCard', 'bgabnc_cardontable_' + player_id);
+                } else {
+                    this.fadeOutAndDestroy('bgabnc_cardontable_' + player_id);
+                }
             }
+            this.updateScorePile(winner_id, notif.args.score_pile);
+
+            if (!this.instantaneousMode)
+                await new Promise(r => setTimeout(r, 1000));
+
+            this.notifqueue.setSynchronousDuration(0);
         },
 
         // Points were awarded for the hand
