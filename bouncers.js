@@ -21,6 +21,9 @@
     In this file, you are describing the logic of your user interface, in Javascript language.
 */
 
+/* global define, ebg, _, $, g_gamethemeurl */
+/* eslint no-unused-vars: ["error", {args: "none"}] */
+
 'use strict';
 
 define([
@@ -63,11 +66,9 @@ function (dojo, declare, domStyle, lang, attr) {
             dojo.destroy('debug_output');
 
             // Player hand
-            this.playerHand = this.setupCardStocks('myhand', 'onPlayerHandSelectionChanged');
+            this.playerHand = this.setupCardStocks('bgabnc_myhand', 'onPlayerHandSelectionChanged');
             // Cards in player's hand
             this.addCardsToStock(this.playerHand, this.gamedatas.hand);
-            this.unmarkUnplayableCards();
-            this.markCardsUnplayable(this.gamedatas.playableCards);
 
             this.showPointsCard(this.gamedatas.points_card);
 
@@ -90,20 +91,10 @@ function (dojo, declare, domStyle, lang, attr) {
             // Set scores
             this.updateGameScores(this.gamedatas.gameScores);
 
-            this.addTooltip("declaretable", _("Opponent's declared bid"), '');
-            this.addTooltip("revealtable", _("Opponent's revealed hand"), '');
-            this.addTooltipToClass("player_score", _("Game Score"), _('See last score'));
-            var displayLastScore = dojo.hitch(this, this.displayLastScore);
-            dojo.query(".player_score").forEach(function(node) {
-                node.onclick = displayLastScore;
-            });
-
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
             dojo.connect(window, "onresize", this, dojo.hitch(this, "adaptViewportSize"));
-
-            this.ensureSpecificImageLoading(['../common/point.png']);
         },
 
         // Initialize a card stock
@@ -113,19 +104,13 @@ function (dojo, declare, domStyle, lang, attr) {
             stock.create(this, $(id), this.cardwidth, this.cardheight);
             stock.image_items_per_row = 13;
             stock.autowidth = true;
-            if (selectionChangeFunctionName != undefined && selectionChangeFunctionName.length > 0) {
-                stock.setSelectionMode(2);
-                stock.setSelectionAppearance('class');
-                dojo.connect(stock, 'onChangeSelection', this, selectionChangeFunctionName);
-            } else {
-                stock.setSelectionMode(0);
-            }
-            // Order of id: ["club", "diamond", "spade", "heart"];
-            for (var color = 0; color < 4; color++) {
+            stock.setSelectionMode(1);
+            dojo.connect(stock, 'onChangeSelection', this, selectionChangeFunctionName);
+            for (var suit = 0; suit < 4; suit++) {
                 for (var rank = 2; rank <= 14; rank++) {
                     // Build card type id
-                    var card_type_id = this.getCardUniqueId(color, rank);
-                    var card_weight = this.getCardWeight(color, rank);
+                    var card_type_id = this.getCardUniqueId(suit, rank);
+                    var card_weight = this.getCardWeight(suit, rank);
                     stock.addItemType(card_type_id, card_weight, g_gamethemeurl+'img/cards.jpg', card_type_id);
                 }
             }
@@ -161,10 +146,9 @@ function (dojo, declare, domStyle, lang, attr) {
             switch (stateName) {
             case 'playerTurn':
                 this.markActivePlayerTable(true);
-                this.playerHand.setSelectionMode(2);
-                if (args && args.args && args.args._private && args.args._private.playableCards) {
-                    this.markCardsUnplayable(args.args._private.playableCards);
-                }
+                if (!this.isCurrentPlayerActive())
+                    break;
+                this.markPlayableCards(args.args._private.playable_cards);
                 break;
 
             case 'endHand':
@@ -275,41 +259,24 @@ function (dojo, declare, domStyle, lang, attr) {
             });
         },
 
-        // Add an array of server cards to a particular stock
         addCardsToStock: function(stock, cards) {
             this.serverCardsToClientCards(cards).forEach(function(card) {
                 stock.addToStockWithId(card.type, card.id);
             });
         },
 
-        /*
-           Card UI utility functions
-         */
-
-        // Mark cards in your hand which are not in the playableCards array as unplayable
-        // Note: playableCards is an map sent from the server - they are not client-side cards
-        markCardsUnplayable: function(playableCards) {
-            var playableCardArray = Object.entries(playableCards).map(entry => entry[1])
-            var mappingFunction = this.getCardType.bind(this);
-            var playableCardTypes = playableCardArray.map(mappingFunction);
-            var allCards = this.playerHand.getAllItems();
-            for (var i = 0; i < allCards.length; i++) {
-                var cardData = allCards[i];
-                if (!playableCardTypes.includes(cardData.type)) {
-                    var divId = this.playerHand.getItemDivId(cardData.id);
-                    dojo.addClass(divId, "bgabnc_unplayable");
+        markPlayableCards: function(cards) {
+            for (let card_id of cards) {
+                let elem = document.getElementById(`bgabnc_myhand_item_${card_id}`);
+                if (elem) {
+                    elem.classList.add('bgabnc_playable');
                 }
             }
         },
 
-        // Cards in your hand which are marked as unplayable should be 'unmarked'
-        unmarkUnplayableCards: function() {
-            var allCards = this.playerHand.getAllItems();
-            for (var i = 0; i < allCards.length; i++) {
-                var cardData = allCards[i];
-                var divId = this.playerHand.getItemDivId(cardData.id);
-                dojo.removeClass(divId, "bgabnc_unplayable");
-            }
+        unmarkPlayableCards: function() {
+            document.querySelectorAll('#bgabnc_myhand .bgabnc_playable').forEach(
+                e => e.classList.remove('bgabnc_playable'));
         },
 
         // This is the order that cards are sorted
@@ -330,10 +297,6 @@ function (dojo, declare, domStyle, lang, attr) {
                 this.scoreCtrl[playerId].toValue(playerScore);
             }
         },
-
-        /*
-           Trick-related UI utility methods
-         */
 
         // Play a particular card from coming from player_id on the table
         // The card will come from the player boards, unless the card
@@ -356,8 +319,8 @@ function (dojo, declare, domStyle, lang, attr) {
             } else {
                 // You played a card. If it exists in your hand, move card from there and remove
                 // corresponding item
-                if ($('myhand_item_'+card_id)) {
-                    this.placeOnObject('bgabnc_cardontable_'+player_id, 'myhand_item_'+card_id);
+                if ($('bgabnc_myhand_item_'+card_id)) {
+                    this.placeOnObject('bgabnc_cardontable_'+player_id, 'bgabnc_myhand_item_'+card_id);
                     this.playerHand.removeFromStockById(card_id);
                 }
             }
@@ -375,8 +338,11 @@ function (dojo, declare, domStyle, lang, attr) {
          */
 
         showPointsCard: function(value) {
-            let elem = document.getElementById('bgabnc_pointsCard');
+            let container = document.getElementById('bgabnc_points_slot');
+            let elem = document.createElement('div');
+            elem.id = 'bgabnc_points_card';
             elem.textContent = this.gamedatas.rank_labels[value];
+            container.appendChild(elem);
         },
 
         updateScorePile: function(player_id, score_pile) {
@@ -421,29 +387,24 @@ function (dojo, declare, domStyle, lang, attr) {
 
         // Callback for when the player hand selection changes
         onPlayerHandSelectionChanged: function() {
-            var items = this.playerHand.getSelectedItems();
+            let items = this.playerHand.getSelectedItems();
+            if (items.length == 0)
+                return;
+            this.playerHand.unselectAll();
             if (!this.isCurrentPlayerActive()) {
-                console.log("Not your turn. Unselecting card");
-                this.playerHand.unselectAll();
-                this.lastItemsSelected = [];
+                return;
             }
+            if (!document.getElementById(this.playerHand.getItemDivId(items[0].id)).classList.contains('bgabnc_playable'))
+                return;
             if (this.checkAction('playCard', true)) {
-                if (items.length > 0) {
-                    // Can play a card
-                    this.playCard(items[0]);
-                }
+                this.playCard(items[0].id);
             }
         },
 
         // Play an individual card
-        playCard: function(card) {
-            this.ajaxCallWrapper('playCard', { id: card.id });
+        playCard: function(card_id) {
+            this.ajaxCallWrapper('playCard', { id: card_id });
             this.playerHand.unselectAll();
-        },
-
-        // Display the last score table
-        displayLastScore: function() {
-            this.ajaxCallWrapper("displayScore", {}, true);
         },
 
         // Wrap making AJAX calls to the backend
@@ -454,7 +415,7 @@ function (dojo, declare, domStyle, lang, attr) {
             args.lock = true;
 
             if (skipActionCheck || this.checkAction(action)) {
-                this.ajaxcall("/" + this.game_name + "/" + this.game_name + "/" + action + ".html",
+                this.ajaxcall(`/${this.game_name}/${this.game_name}/${action}.html`,
                               args, this, (result) => {}, handler);
             }
         },
@@ -523,29 +484,30 @@ function (dojo, declare, domStyle, lang, attr) {
         notif_playCard: function(notif) {
             // Mark the active player, in case this was an automated move (skipping playerTurn state)
             this.markActivePlayerTable(true, notif.args.player_id);
+            this.unmarkPlayableCards();
             this.playCardOnTable(notif.args.player_id, notif.args.suit,
                                  notif.args.rank, notif.args.card_id);
-            this.unmarkUnplayableCards();
         },
 
         notif_trickWin: async function(notif) {
             let winner_id = notif.args.player_id;
 
-            // Move all cards on table to given table, then destroy them
             for (let player_id in this.gamedatas.players) {
                 if (player_id == winner_id) {
                     // Make sure the moved card is above the winner card
-                    document.getElementById('bgabnc_pointsCard').style.zIndex = 3;
+                    document.getElementById('bgabnc_points_card').style.zIndex = 3;
                     // TODO: Doesn't work because not relative/aboslute. Use element animate()?
-                    this.slideToObjectAndDestroy('bgabnc_pointsCard', 'bgabnc_cardontable_' + player_id);
-                } else {
-                    this.fadeOutAndDestroy('bgabnc_cardontable_' + player_id);
+                    this.slideToObjectAndDestroy('bgabnc_points_card', 'bgabnc_scorepile_' + player_id);
                 }
+                this.fadeOutAndDestroy('bgabnc_cardontable_' + player_id);
             }
             this.updateScorePile(winner_id, notif.args.score_pile);
 
             if (!this.instantaneousMode)
                 await new Promise(r => setTimeout(r, 1000));
+
+            if (notif.args.points_card)
+                this.showPointsCard(notif.args.points_card);
 
             this.notifqueue.setSynchronousDuration(0);
         },

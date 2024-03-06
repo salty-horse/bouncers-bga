@@ -71,8 +71,6 @@ $machinestates = [
         'transitions' => ['' => STATE_NEW_HAND]
     ],
     
-    // stGameSetup manages the state of the game
-    
     STATE_NEW_HAND => [
         'name' => 'newHand',
         'description' => '',
@@ -82,15 +80,13 @@ $machinestates = [
         'transitions' => ['' => STATE_PLAYER_TURN]
     ],
     
-    // Trick
-    
     STATE_PLAYER_TURN => [
         'name' => 'playerTurn',
         'description' => clienttranslate('${actplayer} must play a card'),
         'descriptionmyturn' => clienttranslate('${you} must play a card'),
         'args' => 'argPlayableCards',
         'type' => 'activeplayer',
-        'possibleactions' => ['playCard', 'displayScore'],
+        'possibleactions' => ['playCard'],
         'transitions' => ['playCard' => STATE_NEXT_PLAYER]
     ],
 

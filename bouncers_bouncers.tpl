@@ -40,9 +40,9 @@
             </div>
             <!-- END player -->
 
-            <div class="whiteblock" id="bgabnc_pointsContainer">
+            <div class="whiteblock" id="bgabnc_pointstable">
                 <div>{SCORE_CARD_LABEL}</div>
-                <div id="bgabnc_pointsCard"></div>
+                <div id="bgabnc_points_slot"></div>
             </div>
         </div>
     </div>
@@ -52,9 +52,9 @@
     <div class="whiteblock bgabnc_container" id="my_hand_container">
         <div class="bgabnc_section" style="flex-grow: 1;">
             <div style="width: auto; display: flex">
-                <h3 id="myhandlabel" class="">{MY_HAND_LABEL}</h3>
+                <h3>{MY_HAND_LABEL}</h3>
             </div>
-            <div id="myhand"></div>
+            <div id="bgabnc_myhand"></div>
         </div>
     </div>
 </div>
@@ -64,10 +64,6 @@
 <script type="text/javascript">
 
 var jstpl_cardontable = '<div class="bgabnc_cardontable bgabnc_suit_${suit} bgabnc_rank_${rank}" id="bgabnc_cardontable_${player_id}"></div>';
-var jstpl_player_round_score = '\<div class="bgabnc_round_score">\
-    \<span id="player_round_score_${id}" class="player_score_value">0\</span>\
-    \<span class="fa fa-star bgabnc_round_score_icon"/>\
-</div>';
 
 </script>
 

@@ -70,10 +70,6 @@
     display: block;
 }
 
-.bgabnc_red {
-    color: red;
-}
-
 .bgabnc_invisible {
     visibility: hidden;
 }
@@ -173,7 +169,7 @@
     height: 96px;
 }
 
-#bgabnc_pointsContainer {
+#bgabnc_pointstable {
     min-width: 120px;
     max-width: 150px;
     text-align: center;
@@ -187,9 +183,6 @@
     display: block;
     width: auto;
     margin-top: 10px;
-}
-
-.bgabnc_tricks {
 }
 
 .bgabnc_activeplayer {
@@ -318,8 +311,13 @@
     z-index: -1;
 }
 
-.stockitem_selected {
-    border: 0px !important;
+.stockitem {
+    cursor: default !important;
+}
+
+.bgabnc_playable {
+    cursor: pointer !important;
+    box-shadow: 1px 1px 1px 1px black, 0px 0px 3px 3px yellow;
 }
 
 .bgabnc_highlight_selected .gamestate_bidding .stockitem_selected {
@@ -365,9 +363,4 @@
     position: relative;
     display: inline-block;
     width: 100%;
-}
-
-.stockitem.bgabnc_unplayable {
-    filter: brightness(.8);
-    pointer-events: none;
 }

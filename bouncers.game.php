@@ -146,7 +146,7 @@ class Bouncers extends Table {
 
         // Cards in player hand
         $result['hand'] = $this->cards->getPlayerHand($player_id);
-        $result['playableCards'] = $this->getPlayableCards($player_id);
+        $result['playable_cards'] = array_keys($this->getPlayableCards($player_id));
 
         // Cards played on the table
         $result['cardsontable'] = $this->cards->getCardsInLocation('cardsontable');
@@ -206,66 +206,20 @@ class Bouncers extends Table {
 
     // Gets the current player whose turn it is to play a card
     function getCurrentPlayer() {
-        return intval(self::getGameStateValue("currentPlayer"));
+        return intval(self::getGameStateValue('currentPlayer'));
     }
 
     // Sets the current player
     function setCurrentPlayer($playerID) {
-        self::setGameStateValue("currentPlayer", $playerID);
-    }
-
-    // Allow a player to request showing the last score table
-    function displayLastScoreTable() {
-        $lastScoreInfo = $this->getLatestScoreTable();
-        $playerId = self::getCurrentPlayerId();
-        if ($lastScoreInfo == null) {
-            $this->notifyPlayer($playerId, 'scoreDisplayRequest',
-                clienttranslate("No score to display"), []);
-        } else {
-            $this->notifyPlayer($playerId, "tableWindow", '', [
-                "id" => 'scoreView',
-                "title" => clienttranslate("Last hand"),
-                "table" => $lastScoreInfo,
-                "closing" => clienttranslate("Continue")
-            ]);
-        }
+        self::setGameStateValue('currentPlayer', $playerID);
     }
 
 /************** End Game State helper functions ****************/
 
 /************** Database access helper functions ****************/
 
-    // Cache the score table to the DB
-    function saveCurrentScoreTable($scoreTable) {
-        $jsonscore = json_encode($scoreTable);
-        $rowId = $this->getUniqueValueFromDB("SELECT id FROM gamestate");
-        if ($rowId == null) {
-            $this->DbQuery("INSERT INTO gamestate (scoretable) VALUES ('$jsonscore')");
-        } else {
-            $this->DbQuery("UPDATE gamestate SET scoretable='$jsonscore' WHERE id='$rowId'");
-        }
-    }
-
-    // Get latest scoretable from the DB
-    function getLatestScoreTable() {
-        $jsonScore = $this->getUniqueValueFromDB("SELECT scoretable FROM gamestate");
-        if ($jsonScore == null) {
-            return null;
-        }
-        $scoreTable = json_decode($jsonScore);
-        if (!is_array($scoreTable)) {
-            return null;
-        }
-        return $scoreTable;
-    }
-
-    // Get the color of a particular player
-    function getPlayerColor($playerId) {
-        return $this->getUniqueValueFromDB("SELECT player_color FROM player WHERE player_id='$playerId'");
-    }
-
     function dbGetScores() {
-        $scores = $this->getCollectionFromDB("SELECT player_id, player_score FROM player", true);
+        $scores = $this->getCollectionFromDB('SELECT player_id, player_score FROM player', true);
         $result = [];
         foreach ($scores as $playerId => $score) {
             $result[$playerId] = intval($score);
@@ -496,13 +450,13 @@ class Bouncers extends Table {
 
         // Sanity check. A more thorough check is done later.
         if ($current_card['location'] != 'hand' || $current_card['location_arg'] != $player_id) {
-            throw new BgaUserException(self::_('You do not have this card'));
+            throw new BgaVisibleSystemException('You do not have this card');
         }
 
         $playable_cards = $this->getPlayableCards($player_id);
 
         if (!array_key_exists($card_id, $playable_cards)) {
-            throw new BgaUserException(self::_('You cannot play this card'));
+            throw new BgaVisibleSystemException('You cannot play this card');
         }
 
         // Checks are done! now we can play our card
@@ -627,24 +581,24 @@ class Bouncers extends Table {
             $current_point_card = $this->cards->getCardOnTop('points');
             $this->cards->insertCardOnExtremePosition($current_point_card['id'], "scorepile_${winningPlayer}", /* on top */ true);
 
-            // Notify
             $players = self::loadPlayersBasicInfos();
-            self::notifyAllPlayers('trickWin', clienttranslate('${player_name} wins the trick and the points card ${points}'), [
+            $args = [
                 'player_id' => $winningPlayer,
                 'player_name' => $players[$winningPlayer]['player_name'],
                 'points' => $this->rank_label[$current_point_card['type_arg']],
                 'score_pile' => $this->getScorePile($winningPlayer),
-            ]);
-
-            self::setGameStateValue('ledSuit', 0);
-
+            ];
             if ($this->cards->countCardInLocation('hand') == 0) {
                 // End of the hand
-                $this->gamestate->nextState("endHand");
+                $this->gamestate->nextState('endHand');
             } else {
                 // End of the trick
-                $this->gamestate->nextState("nextTrick");
+                $this->gamestate->nextState('nextTrick');
+                $args['points_card'] = $this->cards->getCardOnTop('points')['type_arg'];
             }
+            self::notifyAllPlayers('trickWin', clienttranslate('${player_name} wins the trick and the points card ${points}'), $args);
+
+            self::setGameStateValue('ledSuit', 0);
         } else {
             // Standard case (not the end of the trick)
             // => just active the next player
@@ -660,7 +614,7 @@ class Bouncers extends Table {
         return [
             '_private' => [
                 'active' => [
-                    'playableCards' => self::getPlayableCards($player_id)
+                    'playable_cards' => array_keys($this->getPlayableCards($player_id)),
                 ]
             ]
         ];
@@ -690,16 +644,16 @@ class Bouncers extends Table {
 
             $this->dbIncScore($player_id, $points);
 
-            self::notifyAllPlayers("points", clienttranslate('${player_name} gets ${points} points'), [
+            self::notifyAllPlayers('points', clienttranslate('${player_name} gets ${points} points'), [
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]['player_name'],
                 'points' => $points,
                 'roundScore' => $playerRoundScore
             ]);
         }
-        $newScores = $this->getCurrentRoundScores();
+        $newScores = $this->getCurrentRoundScores(); // TODO
         $gameScores = $this->dbGetScores();
-        self::notifyAllPlayers("newScores", '', ['newScores' => $newScores, 'gameScores' => $gameScores]);
+        self::notifyAllPlayers('newScores', '', ['newScores' => $newScores, 'gameScores' => $gameScores]);
 
         // Test if this is the end of the round
         // Display the score for the hand
@@ -710,7 +664,7 @@ class Bouncers extends Table {
         if (false) {
             $this->notifyScore($scoreTable, clienttranslate('Final Score'));
             $this->finalizeGameEndState();
-            $this->gamestate->nextState("gameEnd");
+            $this->gamestate->nextState('gameEnd');
             return;
         }
 
@@ -719,7 +673,7 @@ class Bouncers extends Table {
         // Alternate first player
         self::setGameStateValue('firstPlayer', 
             self::getPlayerAfter(self::getGameStateValue('firstPlayer')));
-        $this->gamestate->nextState("newHand");
+        $this->gamestate->nextState('newHand');
     }
 
 /************** Game state helper functions ****************/
@@ -729,7 +683,7 @@ class Bouncers extends Table {
         $roundScoreInfo = $this->generateRoundScoreInfo();
 
         $gameScores = $this->dbGetScores();
-        self::notifyAllPlayers("newScores", '', ['newScores' => $roundScores, 'gameScores' => $gameScores]);
+        self::notifyAllPlayers('newScores', '', ['newScores' => $roundScores, 'gameScores' => $gameScores]);
     }
 
     /**
@@ -822,7 +776,7 @@ class Bouncers extends Table {
         }
         $table[] = $firstRow;
 
-        $totalRow = [clienttranslate("Total")];
+        $totalRow = [clienttranslate('Total')];
         foreach ($players as $player_id => $player) {
             $totalRow[] = $scoreInfo['total'][$player_id];
         }
@@ -831,7 +785,7 @@ class Bouncers extends Table {
         // Having a separater between hand total and round total is nice
         $table[] = $this->createEmptyScoringRow();
 
-        $roundScoreRow = [clienttranslate("Game Score")];
+        $roundScoreRow = [clienttranslate('Game Score')];
         foreach ($players as $player_id => $player) {
             $roundScoreRow[] = $scoreInfo['currentScore'][$player_id];
         }
@@ -841,12 +795,11 @@ class Bouncers extends Table {
 
     // Display the score
     function notifyScore($table, $message) {
-        $this->saveCurrentScoreTable($table);
-        $this->notifyAllPlayers("tableWindow", '', [
-            "id" => 'scoreView',
-            "title" => $message,
-            "table" => $table,
-            "closing" => clienttranslate("Continue")
+        $this->notifyAllPlayers('tableWindow', '', [
+            'id' => 'scoreView',
+            'title' => $message,
+            'table' => $table,
+            'closing' => clienttranslate('Continue')
         ]);
     }
 
