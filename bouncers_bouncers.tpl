@@ -64,6 +64,7 @@
 <script type="text/javascript">
 
 var jstpl_cardontable = '<div class="bgabnc_cardontable bgabnc_suit_${suit} bgabnc_rank_${rank}" id="bgabnc_cardontable_${player_id}"></div>';
+var jstpl_points_card = '<div class="bgabnc_points_card"><div class="bgabnc_points_card_x"></div><div class="bgabnc_points_card_letter">${value}</div></div>';
 
 </script>
 

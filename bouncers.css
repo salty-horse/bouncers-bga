@@ -93,32 +93,6 @@
     border-radius: 50px;
 }
 
-.bgabnc_badge_ribbon {
-    display: inline-block;
-    position: relative;
-    background: #f9a11a;
-    height: 10px;
-    width: 10px;
-    border-radius: 50px;
-    top: -3px;
-}
-.bgabnc_badge_ribbon:before,
-.bgabnc_badge_ribbon:after {
-    content: '';
-    position: absolute;
-    border-bottom: 5px solid #f9a11a;
-    border-left: 3px solid transparent;
-    border-right: 3px solid transparent;
-    top: 9px;
-    left: 0px;
-    transform: rotate(-140deg);
-}
-.bgabnc_badge_ribbon:after {
-    left: auto;
-    right: 0px;
-    transform: rotate(140deg);
-}
-
 /** Table layout **/
 
 #playertables {
@@ -198,6 +172,58 @@
     height: 96px;
     background-image: url('img/cards.jpg');
     z-index: 100;
+}
+
+.bgabnc_points_card {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  height: 62px;
+  width: 62px;
+  padding: 8px;
+  user-select: none;
+}
+
+.bgabnc_points_card div {
+  font-size: 65px;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  transition: all 1s ease-in-out;
+}
+
+.bgabnc_points_card_letter {
+  outline: 1px solid #000;
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 1px 1px 1px 1px black;
+}
+
+.bgabnc_points_card_x_on::before {
+	content: '🗙';
+}
+
+.bgabnc_points_card_x {
+	position: absolute;
+	opacity: 0.6;
+	color: red;
+    font-size: 102px !important;
+}
+
+.bgabnc_points_card.bgabnc_small > .bgabnc_points_card_letter {
+	width: 26px;
+	height: 33px;
+	font-size: 25px;
+	border-radius: 3px;
+    box-shadow: 0.3px 0.3px 0.3px 0.3px black;
+}
+
+.bgabnc_points_card.bgabnc_small > .bgabnc_points_card_x {
+    font-size: 37px !important;
 }
 
 .bgabnc_suit_spade {

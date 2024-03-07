@@ -339,9 +339,9 @@ function (dojo, declare, domStyle, lang, attr) {
 
         showPointsCard: function(value) {
             let container = document.getElementById('bgabnc_points_slot');
-            let elem = document.createElement('div');
-            elem.id = 'bgabnc_points_card';
-            elem.textContent = this.gamedatas.rank_labels[value];
+            let elem = this.format_block('jstpl_points_card', {
+                    value: this.gamedatas.rank_labels[value],
+                });
             container.appendChild(elem);
         },
 
