@@ -52,7 +52,7 @@
     justify-content: space-between;
     flex-wrap: wrap;
     min-height: 340px;
-    margin-bottom: 10px;
+    margin-bottom: 60px;
 }
 
 #bgabnc_playarea > div {
@@ -123,7 +123,7 @@
 
 .bgabnc_playertable_S {
     margin-left: 236px;
-    margin-top: 130px;
+    margin-top: 192px;
 }
 
 .bgabnc_playertable_W {
@@ -150,7 +150,6 @@
     font-size: 16px;
     font-weight: bold;
     margin-left: 264px;
-    height: 60px;
 }
 
 .bgabnc_playertable_scorepile {
@@ -179,14 +178,14 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  height: 62px;
-  width: 62px;
+  width: 72px;
+  height: 96px;
   padding: 8px;
   user-select: none;
 }
 
 .bgabnc_points_card div {
-  font-size: 65px;
+  font-size: 57px;
   width: 100%;
   height: 100%;
   display: flex;
@@ -214,9 +213,12 @@
     font-size: 102px !important;
 }
 
-.bgabnc_points_card.bgabnc_small > .bgabnc_points_card_letter {
+.bgabnc_points_card.bgabnc_small {
 	width: 26px;
 	height: 33px;
+}
+
+.bgabnc_points_card.bgabnc_small > .bgabnc_points_card_letter {
 	font-size: 25px;
 	border-radius: 3px;
     box-shadow: 0.3px 0.3px 0.3px 0.3px black;

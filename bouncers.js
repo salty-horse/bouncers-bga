@@ -339,23 +339,30 @@ function (dojo, declare, domStyle, lang, attr) {
 
         showPointsCard: function(value) {
             let container = document.getElementById('bgabnc_points_slot');
-            let elem = this.format_block('jstpl_points_card', {
+            dojo.place(this.format_block('jstpl_points_card', {
                     value: this.gamedatas.rank_labels[value],
-                });
-            container.appendChild(elem);
+                }), container);
         },
 
         updateScorePile: function(player_id, score_pile) {
             document.getElementById(`bgabnc_scorepile_total_${player_id}`).textContent = score_pile.score;
-            let pile = [];
+            let container = document.getElementById(`bgabnc_scorepile_${player_id}`);
+            container.textContent = '';
+            if (!score_pile.score_pile) { 
+                elem.textContent = '-';
+                return;
+            }
             for (let card of score_pile.score_pile) {
                 let label = this.gamedatas.rank_labels[card[0]];
-                pile.push((card.length == 2) ? `<s>${label}</s>`: label);
+                let args = {
+                    value: label,
+                    on_class: '',
+                };
+                if (card.length == 2) {
+                    args.on_class = 'bgabnc_points_card_x_on';
+                }
+                dojo.place(this.format_block('jstpl_points_card_small', args), container);
             }
-            if (!pile) { 
-                pile.push('-');
-            }
-            document.getElementById(`bgabnc_scorepile_${player_id}`).innerHTML = pile.join(', ');
         },
 
         // Provide a visual indication as to who's action it is
@@ -495,7 +502,8 @@ function (dojo, declare, domStyle, lang, attr) {
             for (let player_id in this.gamedatas.players) {
                 if (player_id == winner_id) {
                     // Make sure the moved card is above the winner card
-                    document.getElementById('bgabnc_points_card').style.zIndex = 3;
+                    let elem = document.getElementById('bgabnc_points_slot').firstChild;
+                    elem.style.zIndex = 3;
                     // TODO: Doesn't work because not relative/aboslute. Use element animate()?
                     this.slideToObjectAndDestroy('bgabnc_points_card', 'bgabnc_scorepile_' + player_id);
                 }
