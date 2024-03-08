@@ -23,9 +23,10 @@
 
     See your "view" PHP file to check how to set variables and control blocks
 -->
-<div id="table">
+<div id="bgbnc_table">
     <div id="bgabnc_playarea">
-        <div id="playertables">
+        <div id="bgabnc_playertables">
+            <div class="bgabnc_flex_break"></div>
 
             <!-- BEGIN player -->
             <div class="bgabnc_playertable whiteblock bgabnc_playertable_{DIR}" id="bgabnc_playertable_{PLAYER_ID}">
@@ -34,8 +35,8 @@
                 </div>
                 <div class="bgabnc_playertablecard" id="bgabnc_playertablecard_{PLAYER_ID}"></div>
                 <div>
-                    <span>{SCORE_PILE}:</span> <span id="bgabnc_scorepile_{PLAYER_ID}"></span><br>
                     <span>{SCORE_PILE_TOTAL}:</span> <span id="bgabnc_scorepile_total_{PLAYER_ID}">0</span>
+                    <div id="bgabnc_scorepile_{PLAYER_ID}"></div>
                 </div>
             </div>
             <!-- END player -->
@@ -48,8 +49,8 @@
     </div>
 </div>
 
-<div class="my_cards">
-    <div class="whiteblock bgabnc_container" id="my_hand_container">
+<div class="bgabnc_my_cards">
+    <div class="whiteblock bgabnc_container" id="bgabnc_my_hand_container">
         <div class="bgabnc_section" style="flex-grow: 1;">
             <div style="width: auto; display: flex">
                 <h3>{MY_HAND_LABEL}</h3>
@@ -65,7 +66,7 @@
 
 var jstpl_cardontable = '<div class="bgabnc_cardontable bgabnc_suit_${suit} bgabnc_rank_${rank}" id="bgabnc_cardontable_${player_id}"></div>';
 var jstpl_points_card = '<div class="bgabnc_points_card"><div class="bgabnc_points_card_x"></div><div class="bgabnc_points_card_letter">${value}</div></div>';
-var jstpl_points_card_small = '<div class="bgabnc_points_card bgabnc_small"><div class="bgabnc_points_card_x"></div><div class="bgabnc_points_card_letter ${on_class}">${value}</div></div>';
+var jstpl_points_card_small = '<div class="bgabnc_points_card bgabnc_small"><div class="bgabnc_points_card_x ${on_class}"></div><div class="bgabnc_points_card_letter">${value}</div></div>';
 
 </script>
 

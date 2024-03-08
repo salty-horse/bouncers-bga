@@ -45,7 +45,12 @@
 
 @import url(../../../css/csslayer.css);
 
-/** General Styles **/
+:root {
+    --bgabnc-points-card-width: 72px;
+    --bgabnc-points-card-height: 96px;
+    --bgabnc-points-card-small-width: 26px;
+    --bgabnc-points-card-small-height: 33px;
+}
 
 #bgabnc_playarea {
     display: flex;
@@ -95,14 +100,25 @@
 
 /** Table layout **/
 
-#playertables {
-    position: relative;
-    height: 300px;
-    display: block;
+#bgabnc_playertables {
+    /* position: relative; */
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: center;
     min-width: 698px;
-    max-width: 698px;
     padding: 10px;
     margin: auto;
+}
+
+#bgabnc_playertables :nth-child(1) { order: 4; }
+#bgabnc_playertables :nth-child(2) { order: 5; }
+#bgabnc_playertables :nth-child(3) { order: 1; }
+#bgabnc_playertables :nth-child(4) { order: 3; }
+#bgabnc_playertables :nth-child(5) { order: 2; }
+
+.bgabnc_flex_break {
+	flex-basis: 100%;
+	height: 0;
 }
 
 .bgabnc_playertablename {
@@ -110,29 +126,23 @@
 }
 
 .bgabnc_playertable {
-    position: absolute;
     text-align: center;
     width: 206px;
-    height: 150px;
+	margin-left: 20px;
+	margin-right: 20px;
     display: inline-block;
 }
 
 .bgabnc_playertable_N {
-    margin-left: 236px;
 }
 
 .bgabnc_playertable_S {
-    margin-left: 236px;
-    margin-top: 192px;
 }
 
 .bgabnc_playertable_W {
-    margin-top: 0px;
 }
 
 .bgabnc_playertable_E {
-    margin-top: 0px;
-    margin-left: 472px;
 }
 
 .bgabnc_playertablecard {
@@ -144,12 +154,12 @@
 }
 
 #bgabnc_pointstable {
-    min-width: 120px;
-    max-width: 150px;
+	height: 100%;
+    width: 150px;
+	min-height: 135px;
+	margin-top: 30px;
     text-align: center;
     font-size: 16px;
-    font-weight: bold;
-    margin-left: 264px;
 }
 
 .bgabnc_playertable_scorepile {
@@ -173,26 +183,30 @@
     z-index: 100;
 }
 
+#bgabnc_points_slot {
+  display: inline-block;
+  width: var(--bgabnc-points-card-width);
+  height: var(--bgabnc-points-card-height);
+}
+
 .bgabnc_points_card {
   display: inline-flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  width: 72px;
-  height: 96px;
-  padding: 8px;
   user-select: none;
+  width: var(--bgabnc-points-card-width);
+  height: var(--bgabnc-points-card-height);
 }
 
 .bgabnc_points_card div {
   font-size: 57px;
-  width: 100%;
-  height: 100%;
+  width: var(--bgabnc-points-card-width);
+  height: var(--bgabnc-points-card-height);
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-  transition: all 1s ease-in-out;
 }
 
 .bgabnc_points_card_letter {
@@ -214,8 +228,15 @@
 }
 
 .bgabnc_points_card.bgabnc_small {
-	width: 26px;
-	height: 33px;
+  width: var(--bgabnc-points-card-small-width);
+  height: var(--bgabnc-points-card-small-height);
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.bgabnc_points_card.bgabnc_small div {
+  width: var(--bgabnc-points-card-small-width);
+  height: var(--bgabnc-points-card-small-height);
 }
 
 .bgabnc_points_card.bgabnc_small > .bgabnc_points_card_letter {
@@ -366,7 +387,7 @@
 
 /*** hand layout ***/
 
-.my_cards {
+.bgabnc_my_cards {
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
@@ -374,7 +395,7 @@
     margin-right: 0px;
 }
 
-#my_hand_container {
+#bgabnc_my_hand_container {
     display: flex;
     min-width: fit-content;
     flex-grow: 1;
@@ -383,11 +404,11 @@
     border-top: 1px solid black;
 }
 
-.spectatorMode #my_hand_container {
+.spectatorMode #bgabnc_my_hand_container {
     display: none;
 }
 
-#myhand {
+#bgabnc_myhand {
     position: relative;
     display: inline-block;
     width: 100%;

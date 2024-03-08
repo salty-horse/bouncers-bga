@@ -85,7 +85,7 @@ function (dojo, declare, domStyle, lang, attr) {
             this.markActivePlayerTable(true);
 
             for (const [player_id, player_info] of Object.entries(this.gamedatas.players)) {
-                this.updateScorePile(player_id, player_info.score_pile);
+                this.initScorePile(player_id, player_info.score_pile);
             }
 
             // Set scores
@@ -124,7 +124,7 @@ function (dojo, declare, domStyle, lang, attr) {
 
         // Adjust the overlap of cards in your hand
         adjustCardOverlapToAvailableSpace: function() {
-            var bodycoords = dojo.marginBox("my_hand_container");
+            var bodycoords = dojo.marginBox("bgabnc_my_hand_container");
             var numberOfCardsWhichWrap = 0;
             var contentWidth = bodycoords.w - 20; // Minus 10 pixels of padding on either side
             var cardCountInHand = this.playerHand.getAllItems().length;
@@ -339,12 +339,12 @@ function (dojo, declare, domStyle, lang, attr) {
 
         showPointsCard: function(value) {
             let container = document.getElementById('bgabnc_points_slot');
-            dojo.place(this.format_block('jstpl_points_card', {
+            let elem = dojo.place(this.format_block('jstpl_points_card', {
                     value: this.gamedatas.rank_labels[value],
                 }), container);
         },
 
-        updateScorePile: function(player_id, score_pile) {
+        initScorePile: function(player_id, score_pile) {
             document.getElementById(`bgabnc_scorepile_total_${player_id}`).textContent = score_pile.score;
             let container = document.getElementById(`bgabnc_scorepile_${player_id}`);
             container.textContent = '';
@@ -365,6 +365,20 @@ function (dojo, declare, domStyle, lang, attr) {
             }
         },
 
+        updateScorePile: function(player_id, score_pile) {
+            document.getElementById(`bgabnc_scorepile_total_${player_id}`).textContent = score_pile.score;
+            let cardDivs = document.querySelectorAll(`#bgabnc_scorepile_${player_id} .bgabnc_points_card_x`);
+            for (let i = 0; i < score_pile.score_pile.length; i++) {
+                let card = score_pile.score_pile[i];
+                let card_div = cardDivs[i];
+                if (card.length == 2) {
+                    card_div.classList.add('bgabnc_points_card_x_on');
+                } else {
+                    card_div.classList.remove('bgabnc_points_card_x_on');
+                }
+            }
+        },
+
         // Provide a visual indication as to who's action it is
         markActivePlayerTable: function(turn_on, player_id) {
             if (!player_id) {
@@ -376,6 +390,28 @@ function (dojo, declare, domStyle, lang, attr) {
             if (!player_id)
                 return;
             dojo.addClass('bgabnc_playertable_' + this.getActivePlayerId(), 'bgabnc_activeplayer');
+        },
+
+        animateTo: function(elem, newPos, duration = 500) {
+            if (newPos instanceof HTMLElement) {
+                newPos = newPos.getBoundingClientRect();
+            } else if (typeof(newPos) === 'string' || newPos instanceof String) {
+                newPos = document.getElementById(newPos).getBoundingClientRect();
+            }
+
+            if (this.instantaneousMode || !elem.animate) {
+                return;
+            }
+            const oldPos = elem.getBoundingClientRect();
+            let translateX = newPos.x - oldPos.x;
+            let translateY = newPos.y - oldPos.y;
+            if (translateX == 0 && translateY == 0)
+                return;
+            return elem.animate([
+                {transform: 'none'},
+                {transform: `translate(${translateX}px, ${translateY}px)`},
+
+            ], {easing: 'ease-out', duration: duration});
         },
 
         ///////////////////////////////////////////////////
@@ -499,17 +535,23 @@ function (dojo, declare, domStyle, lang, attr) {
         notif_trickWin: async function(notif) {
             let winner_id = notif.args.player_id;
 
+            let elem = document.getElementById('bgabnc_points_slot').firstChild;
+            let scorePileContainer = document.getElementById(`bgabnc_scorepile_${winner_id}`);
+
+            if (!this.instantaneousMode && elem.animate) {
+                let anim = this.animateTo(elem, document.getElementById(`bgabnc_playertablecard_${winner_id}`));
+                await anim.finished;
+            }
+
+            elem.remove();
+            scorePileContainer.append(elem);
+            elem.classList.add('bgabnc_small');
+            this.updateScorePile(winner_id, notif.args.score_pile);
+
+            // Remove cards on table
             for (let player_id in this.gamedatas.players) {
-                if (player_id == winner_id) {
-                    // Make sure the moved card is above the winner card
-                    let elem = document.getElementById('bgabnc_points_slot').firstChild;
-                    elem.style.zIndex = 3;
-                    // TODO: Doesn't work because not relative/aboslute. Use element animate()?
-                    this.slideToObjectAndDestroy('bgabnc_points_card', 'bgabnc_scorepile_' + player_id);
-                }
                 this.fadeOutAndDestroy('bgabnc_cardontable_' + player_id);
             }
-            this.updateScorePile(winner_id, notif.args.score_pile);
 
             if (!this.instantaneousMode)
                 await new Promise(r => setTimeout(r, 1000));
