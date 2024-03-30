@@ -32,12 +32,6 @@
 -- player_ai: 1 if player is ai, 0 if live
 -- player_enter_game: Whether or not the player has actually loaded the game
 
-CREATE TABLE IF NOT EXISTS `gamestate` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `scoretable` varchar(1024) default NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-
 CREATE TABLE IF NOT EXISTS `round_scores` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `round_number` int(10) unsigned NOT NULL,
