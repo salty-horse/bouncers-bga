@@ -153,7 +153,9 @@ class Bouncers extends Table {
 
         // Point card
         $result['points_card'] = $this->cards->getCardOnTop('points')['type_arg'];
-        // TODO: Upcoming cards
+        if ($this->getGameStateValue('showUpcomingPoints')) {
+            $result['upcoming_points'] = $this->getUpcomingCards();
+        }
 
         $result['handNum'] = $this->getGameStateValue('handNum');
 
@@ -393,6 +395,10 @@ class Bouncers extends Table {
         ];
     }
 
+    function getUpcomingCards() {
+        return $this->getObjectListFromDB("SELECT card_type_arg FROM card WHERE card_location = 'points' ORDER BY card_location_arg DESC LIMIT 1,13", true );
+    }
+
 /************** End Other helper functions ****************/
 
 
@@ -510,26 +516,26 @@ class Bouncers extends Table {
             'hand_num' => $handCount,
         ]);
 
-        // Take back all cards (from any location => null) to deck
-        $this->cards->moveAllCardsInLocation('scorepile', 'points');
-        // TODO: Take back cards from score piles
+        // Recreate points deck, deal cards to each players
         $this->cards->shuffle('deck');
-        $this->cards->shuffle('points');
-        // Deal cards to each players
-        // Create deck, shuffle it and give initial cards
         $players = self::loadPlayersBasicInfos();
         foreach ($players as $player_id => $player) {
+            $this->cards->moveAllCardsInLocation("scorepile_${player_id}", 'points');
             $cards = $this->cards->pickCards(13, 'deck', $player_id);
             // Notify player about his cards
             self::notifyPlayer($player_id, 'newHand', '', [
                 'cards' => $cards,
             ]);
         }
-        self::notifyAllPlayers('newHandPublic', '', [
+        $this->cards->shuffle('points');
+        $args = [
             'cards' => $cards,
             'points_card' => $this->cards->getCardOnTop('points')['type_arg'],
-            // TODO: Upcoming cards
-        ]);
+        ];
+        if ($this->getGameStateValue('showUpcomingPoints')) {
+            $args['upcoming_points'] = $this->getUpcomingCards();
+        }
+        self::notifyAllPlayers('newHandPublic', '', $args);
         $this->gamestate->nextState();
     }
 
@@ -561,13 +567,14 @@ class Bouncers extends Table {
             ];
             if ($this->cards->countCardInLocation('hand') == 0) {
                 // End of the hand
-                $this->gamestate->nextState('endHand');
+                $next_state = 'endHand';
             } else {
                 // End of the trick
-                $this->gamestate->nextState('nextTrick');
+                $next_state = 'nextTrick';
                 $args['points_card'] = $this->cards->getCardOnTop('points')['type_arg'];
             }
             self::notifyAllPlayers('trickWin', clienttranslate('${player_name} wins the trick and the points card ${points}'), $args);
+            $this->gamestate->nextState($next_state);
         } else {
             // Standard case (not the end of the trick)
             // => just active the next player

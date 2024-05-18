@@ -48,7 +48,7 @@
 :root {
     --bgabnc-points-card-width: 72px;
     --bgabnc-points-card-height: 96px;
-    --bgabnc-points-card-small-width: 26px;
+    --bgabnc-points-card-small-width: 24.75px;
     --bgabnc-points-card-small-height: 33px;
 }
 
@@ -102,12 +102,13 @@
 
 #bgabnc_playertables {
     /* position: relative; */
-	display: flex;
-	flex-wrap: wrap;
-	justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     min-width: 698px;
     padding: 10px;
     margin: auto;
+    align-items: flex-start;
 }
 
 #bgabnc_playertables :nth-child(1) { order: 4; }
@@ -117,8 +118,8 @@
 #bgabnc_playertables :nth-child(5) { order: 2; }
 
 .bgabnc_flex_break {
-	flex-basis: 100%;
-	height: 0;
+    flex-basis: 100%;
+    height: 0;
 }
 
 .bgabnc_playertablename {
@@ -128,8 +129,8 @@
 .bgabnc_playertable {
     text-align: center;
     width: 206px;
-	margin-left: 20px;
-	margin-right: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
     display: inline-block;
 }
 
@@ -154,10 +155,10 @@
 }
 
 #bgabnc_pointstable {
-	height: 100%;
+    height: 100%;
     width: 150px;
-	min-height: 135px;
-	margin-top: 30px;
+    min-height: 135px;
+    margin-top: 30px;
     text-align: center;
     font-size: 16px;
 }
@@ -166,6 +167,7 @@
     display: block;
     width: auto;
     margin-top: 10px;
+    min-height: calc(var(--bgabnc-points-card-small-height) + 5px);
 }
 
 .bgabnc_activeplayer {
@@ -197,6 +199,7 @@
   user-select: none;
   width: var(--bgabnc-points-card-width);
   height: var(--bgabnc-points-card-height);
+  transition: all 1s ease-in-out;
 }
 
 .bgabnc_points_card div {
@@ -217,13 +220,13 @@
 }
 
 .bgabnc_points_card_x_on::before {
-	content: '🗙';
+    content: '🗙';
 }
 
 .bgabnc_points_card_x {
-	position: absolute;
-	opacity: 0.6;
-	color: red;
+    position: absolute;
+    opacity: 0.6;
+    color: red;
     font-size: 102px !important;
 }
 
@@ -240,8 +243,8 @@
 }
 
 .bgabnc_points_card.bgabnc_small > .bgabnc_points_card_letter {
-	font-size: 25px;
-	border-radius: 3px;
+    font-size: 25px;
+    border-radius: 3px;
     box-shadow: 0.3px 0.3px 0.3px 0.3px black;
 }
 

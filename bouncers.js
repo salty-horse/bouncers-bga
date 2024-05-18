@@ -88,6 +88,12 @@ function (dojo, declare, domStyle, lang, attr) {
                 this.initScorePile(player_id, player_info.score_pile);
             }
 
+            if (this.gamedatas.upcoming_points == undefined) {
+                document.getElementById('bgabnc_upcoming').style.display = 'none';
+            } else {
+                this.renderUpcomingPile(this.gamedatas.upcoming_points);
+            }
+
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
@@ -333,16 +339,29 @@ function (dojo, declare, domStyle, lang, attr) {
 
         renderScorePile: function(player_id, score_pile, container) {
             for (let card of score_pile.score_pile) {
-                let label = this.gamedatas.rank_labels[card[0]];
-                let args = {
-                    value: label,
-                    on_class: '',
-                };
-                if (card.length == 2) {
-                    args.on_class = 'bgabnc_points_card_x_on';
-                }
-                dojo.place(this.format_block('jstpl_points_card_small', args), container);
+                this.renderPointsCardInPile(card[0], card.length == 2, container);
             }
+        },
+
+        renderUpcomingPile: function(upcoming_cards) {
+            let container = document.getElementById('bgabnc_upcoming_list');
+            container.innerHTML = '';
+            for (let value of upcoming_cards) {
+                this.renderPointsCardInPile(value, false, container);
+            }
+        },
+
+        renderPointsCardInPile: function(card_value, with_x, container) {
+            let label = this.gamedatas.rank_labels[card_value];
+            let args = {
+                value: label,
+                on_class: '',
+            };
+            if (with_x) {
+                args.on_class = 'bgabnc_points_card_x_on';
+            }
+            dojo.place(this.format_block('jstpl_points_card_small', args), container);
+            // TODO: Tooltip
         },
 
         updateScorePile: function(player_id, score_pile) {
@@ -372,26 +391,26 @@ function (dojo, declare, domStyle, lang, attr) {
             dojo.addClass('bgabnc_playertable_' + this.getActivePlayerId(), 'bgabnc_activeplayer');
         },
 
-        animateTo: function(elem, newPos, duration = 500) {
-            if (newPos instanceof HTMLElement) {
-                newPos = newPos.getBoundingClientRect();
-            } else if (typeof(newPos) === 'string' || newPos instanceof String) {
-                newPos = document.getElementById(newPos).getBoundingClientRect();
+        animateFrom: function(elem, oldPos, duration = 500) {
+            if (oldPos instanceof HTMLElement) {
+                oldPos = oldPos.getBoundingClientRect();
+            } else if (typeof(oldPos) === 'string' || oldPos instanceof String) {
+                oldPos = document.getElementById(oldPos).getBoundingClientRect();
             }
 
             if (this.instantaneousMode || !elem.animate) {
                 return;
             }
-            const oldPos = elem.getBoundingClientRect();
-            let translateX = newPos.x - oldPos.x;
-            let translateY = newPos.y - oldPos.y;
+            const newPos = elem.getBoundingClientRect();
+            const translateX = oldPos.x - newPos.x;
+            const translateY = oldPos.y - newPos.y;
             if (translateX == 0 && translateY == 0)
                 return;
             return elem.animate([
-                {transform: 'none'},
                 {transform: `translate(${translateX}px, ${translateY}px)`},
+                {transform: 'none'},
 
-            ], {easing: 'ease-out', duration: duration});
+            ], {easing: 'ease-in-out', duration: duration});
         },
 
         ///////////////////////////////////////////////////
@@ -484,8 +503,6 @@ function (dojo, declare, domStyle, lang, attr) {
             // Just to be sure, clean up any old state
             this.playerHand.removeAll();
 
-            this.showPointsCard(value);
-
             for (var i in notif.args.cards) {
                 var card = notif.args.cards[i];
                 var color = card.type;
@@ -499,7 +516,14 @@ function (dojo, declare, domStyle, lang, attr) {
         // This message is sent to every player
         notif_newHandPublic: function(notif) {
             this.showPointsCard(notif.args.points_card);
-            this.updateRoundNum(notif.args.hand_num);
+            if (notif.args.upcoming_points != undefined) {
+                this.renderUpcomingPile(this.gamedatas.upcoming_points);
+            }
+            for (const [player_id, player_info] of Object.entries(this.gamedatas.players)) {
+                player_info.score_pile.score = 0;
+                player_info.score_pile.score_pile = [];
+                this.initScorePile(player_id, player_info.score_pile);
+            }
         },
 
         // A card was played
@@ -518,15 +542,16 @@ function (dojo, declare, domStyle, lang, attr) {
             let elem = document.getElementById('bgabnc_points_slot').firstChild;
             let scorePileContainer = document.getElementById(`bgabnc_scorepile_${winner_id}`);
 
-            if (!this.instantaneousMode && elem.animate) {
-                let anim = this.animateTo(elem, document.getElementById(`bgabnc_playertablecard_${winner_id}`));
-                await anim.finished;
-            }
-
+            let oldPos = elem.getBoundingClientRect();
             elem.remove();
-            scorePileContainer.append(elem);
             elem.classList.add('bgabnc_small');
+            scorePileContainer.append(elem);
+            this.gamedatas.players[winner_id].score_pile = notif.args.score_pile;
             this.updateScorePile(winner_id, notif.args.score_pile);
+
+            if (!this.instantaneousMode && elem.animate) {
+                this.animateFrom(elem, oldPos);
+            }
 
             // Remove cards on table
             for (let player_id in this.gamedatas.players) {
@@ -536,8 +561,12 @@ function (dojo, declare, domStyle, lang, attr) {
             if (!this.instantaneousMode)
                 await new Promise(r => setTimeout(r, 1000));
 
-            if (notif.args.points_card)
+            if (notif.args.points_card) {
                 this.showPointsCard(notif.args.points_card);
+                if (this.gamedatas.upcoming_points != undefined) {
+                    document.getElementById('bgabnc_upcoming_list').firstChild.remove();
+                }
+            }
 
             this.notifqueue.setSynchronousDuration(0);
         },
@@ -546,7 +575,7 @@ function (dojo, declare, domStyle, lang, attr) {
         // This will be called once for each player, and the information
         // broadcast to all players
         notif_points: function(notif) {
-            this.scoreCtrl[notif.args.player_id].incValue(-notif.args.roundScore);
+            this.scoreCtrl[notif.args.player_id].incValue(-notif.args.points);
         },
 
         // Show score table
@@ -561,7 +590,7 @@ function (dojo, declare, domStyle, lang, attr) {
                 '<th></th>',
                 '<th>', _('Collected cards'), '</th>',
                 '<th>', _('Round points'), '</th>',
-                '<th>', _('Total points'), '</th>',
+                '<th>', _('Total score'), '</th>',
                 '</tr>');
             for (const [player_id, player_info] of Object.entries(this.gamedatas.players)) {
                 parts.push('<tr>');
@@ -584,12 +613,11 @@ function (dojo, declare, domStyle, lang, attr) {
                 this.renderScorePile(player_id, player_info.score_pile, container);
             }
 
-            if ( $('close_btn') ) {
-                dojo.connect( $('close_btn'), 'onclick', this, function( evt )
-                {
-                    evt.preventDefault();
+            if ($('close_btn')) {
+                dojo.connect($('close_btn'), 'onclick', this, function(ev) {
+                    ev.preventDefault();
                     tableDlg.destroy();
-                } );
+                });
             }
 
             tableDlg.show();

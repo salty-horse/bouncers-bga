@@ -32,9 +32,9 @@
     function getGameName() {
         return 'bouncers';
     }
-  	function build_page($viewArgs)
-  	{
-  	    // Get players & players number
+
+    function build_page($viewArgs) {
+        // Get players & players number
         $players = $this->game->loadPlayersBasicInfos();
         $players_nbr = count($players);
 
@@ -58,11 +58,12 @@
         $this->tpl['MY_HAND'] = self::_('My hand');
         $this->tpl['ROUND_LABEL'] = self::_('Hand ');
         $this->tpl['SCORE_CARD_LABEL'] = self::_('Points Card');
+        $this->tpl['UPCOMING'] = self::_('Upcoming');
         $this->tpl['SCORE_PILE_TOTAL'] = self::_('Points');
         $this->tpl['MY_HAND_LABEL'] = self::_('My Hand');
 
         /*********** Do not change anything below this line  ************/
-  	}
+      }
   }
 
 

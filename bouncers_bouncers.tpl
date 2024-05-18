@@ -36,7 +36,7 @@
                 <div class="bgabnc_playertablecard" id="bgabnc_playertablecard_{PLAYER_ID}"></div>
                 <div>
                     <span>{SCORE_PILE_TOTAL}:</span> <span id="bgabnc_scorepile_total_{PLAYER_ID}">0</span>
-                    <div id="bgabnc_scorepile_{PLAYER_ID}"></div>
+                    <div id="bgabnc_scorepile_{PLAYER_ID}" class="bgabnc_playertable_scorepile"></div>
                 </div>
             </div>
             <!-- END player -->
@@ -44,6 +44,10 @@
             <div class="whiteblock" id="bgabnc_pointstable">
                 <div>{SCORE_CARD_LABEL}</div>
                 <div id="bgabnc_points_slot"></div>
+                <div id="bgabnc_upcoming">
+                    <div>{UPCOMING}:</div>
+                    <div id="bgabnc_upcoming_list"></div>
+                </div>
             </div>
         </div>
     </div>
