@@ -97,7 +97,7 @@ class Bouncers extends Table {
             $color = array_shift($default_color);
             $values[] = "('".$player_id."','$start_points','$color','".$player['player_canal']."','".addslashes($player['player_name'] )."','".addslashes($player['player_avatar'])."')";
         }
-        $sql .= implode($values, ',');
+        $sql .= implode(',', $values);
         self::DbQuery($sql);
         self::reloadPlayersBasicInfos();
     }
@@ -155,7 +155,6 @@ class Bouncers extends Table {
         $result['points_card'] = $this->cards->getCardOnTop('points')['type_arg'];
         // TODO: Upcoming cards
 
-        $result['gameScores'] = $this->dbGetScores();
         $result['handNum'] = $this->getGameStateValue('handNum');
 
         foreach ($result['players'] as &$player) {
@@ -544,6 +543,8 @@ class Bouncers extends Table {
             $this->gamestate->changeActivePlayer($winningPlayer);
             $this->setCurrentPlayer($winningPlayer);
 
+            self::setGameStateValue('ledSuit', 0);
+
             // Put cards back in deck
             $this->cards->moveAllCardsInLocation('cardsontable', 'deck');
 
@@ -567,8 +568,6 @@ class Bouncers extends Table {
                 $args['points_card'] = $this->cards->getCardOnTop('points')['type_arg'];
             }
             self::notifyAllPlayers('trickWin', clienttranslate('${player_name} wins the trick and the points card ${points}'), $args);
-
-            self::setGameStateValue('ledSuit', 0);
         } else {
             // Standard case (not the end of the trick)
             // => just active the next player

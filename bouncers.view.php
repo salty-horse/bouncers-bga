@@ -57,8 +57,8 @@
 
         $this->tpl['MY_HAND'] = self::_('My hand');
         $this->tpl['ROUND_LABEL'] = self::_('Hand ');
-        $this->tpl['SCORE_CARD_LABEL'] = self::_('Score Card');
-        $this->tpl['SCORE_PILE_TOTAL'] = self::_('Score');
+        $this->tpl['SCORE_CARD_LABEL'] = self::_('Points Card');
+        $this->tpl['SCORE_PILE_TOTAL'] = self::_('Points');
         $this->tpl['MY_HAND_LABEL'] = self::_('My Hand');
 
         /*********** Do not change anything below this line  ************/

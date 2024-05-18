@@ -67,6 +67,7 @@
 var jstpl_cardontable = '<div class="bgabnc_cardontable bgabnc_suit_${suit} bgabnc_rank_${rank}" id="bgabnc_cardontable_${player_id}"></div>';
 var jstpl_points_card = '<div class="bgabnc_points_card"><div class="bgabnc_points_card_x"></div><div class="bgabnc_points_card_letter">${value}</div></div>';
 var jstpl_points_card_small = '<div class="bgabnc_points_card bgabnc_small"><div class="bgabnc_points_card_x ${on_class}"></div><div class="bgabnc_points_card_letter">${value}</div></div>';
+var jstpl_player_name = '<span style="color:#${color}">${name}</span>';
 
 </script>
 

@@ -88,9 +88,6 @@ function (dojo, declare, domStyle, lang, attr) {
                 this.initScorePile(player_id, player_info.score_pile);
             }
 
-            // Set scores
-            this.updateGameScores(this.gamedatas.gameScores);
-
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
@@ -128,7 +125,6 @@ function (dojo, declare, domStyle, lang, attr) {
             var numberOfCardsWhichWrap = 0;
             var contentWidth = bodycoords.w - 20; // Minus 10 pixels of padding on either side
             var cardCountInHand = this.playerHand.getAllItems().length;
-            var fullSize = cardCountInHand * 76 + (cardCountInHand / 2); // plus a little extra padding
             var cardsThatCanFit = contentWidth / 77;
             numberOfCardsWhichWrap = Math.max(0, cardCountInHand - cardsThatCanFit);
             this.playerHand.setOverlap(100 - Math.min(90, numberOfCardsWhichWrap * 10));
@@ -250,8 +246,6 @@ function (dojo, declare, domStyle, lang, attr) {
             var that = this;
             return Object.entries(serverCards).map(function(serverCard) {
                 var card = serverCard[1];
-                var color = card.type;
-                var rank = card.type_arg;
                 return {
                   type: that.getCardType(card),
                   id: card.id
@@ -282,20 +276,6 @@ function (dojo, declare, domStyle, lang, attr) {
         // This is the order that cards are sorted
         getCardWeight: function(suit, rank) {
             return suit * 13 + (parseInt(rank) - 2);
-        },
-
-        // Update the game scores of all players
-        updateGameScores: function(gameScores) {
-            for (var playerId in gameScores) {
-                this.updatePlayerScore(playerId, gameScores[playerId]);
-            }
-        },
-
-        // Update a particular player's total score
-        updatePlayerScore: function(playerId, playerScore) {
-            if (this.scoreCtrl[playerId]) {
-                this.scoreCtrl[playerId].toValue(playerScore);
-            }
         },
 
         // Play a particular card from coming from player_id on the table
@@ -339,7 +319,7 @@ function (dojo, declare, domStyle, lang, attr) {
 
         showPointsCard: function(value) {
             let container = document.getElementById('bgabnc_points_slot');
-            let elem = dojo.place(this.format_block('jstpl_points_card', {
+            dojo.place(this.format_block('jstpl_points_card', {
                     value: this.gamedatas.rank_labels[value],
                 }), container);
         },
@@ -348,10 +328,10 @@ function (dojo, declare, domStyle, lang, attr) {
             document.getElementById(`bgabnc_scorepile_total_${player_id}`).textContent = score_pile.score;
             let container = document.getElementById(`bgabnc_scorepile_${player_id}`);
             container.textContent = '';
-            if (!score_pile.score_pile) { 
-                elem.textContent = '-';
-                return;
-            }
+            this.renderScorePile(player_id, score_pile, container);
+        },
+
+        renderScorePile: function(player_id, score_pile, container) {
             for (let card of score_pile.score_pile) {
                 let label = this.gamedatas.rank_labels[card[0]];
                 let args = {
@@ -477,16 +457,16 @@ function (dojo, declare, domStyle, lang, attr) {
         */
 
         setupNotifications: function() {
-			[
-            	'newHand',
-            	'newHandPublic',
-            	'playCard',
-            	'trickWin',
-            	'points',
-            	'newScores',
-			].forEach(s => {
-				dojo.subscribe(s, this, `notif_${s}`);
-			});
+            [
+                'newHand',
+                'newHandPublic',
+                'playCard',
+                'trickWin',
+                'points',
+                'showScores',
+            ].forEach(s => {
+                dojo.subscribe(s, this, `notif_${s}`);
+            });
             this.notifqueue.setSynchronous('playCard', (this.playCardDuration));
             this.notifqueue.setSynchronous('trickWin', 0);
         },
@@ -566,15 +546,53 @@ function (dojo, declare, domStyle, lang, attr) {
         // This will be called once for each player, and the information
         // broadcast to all players
         notif_points: function(notif) {
-            var playerId = notif.args.player_id;
-            var score = notif.args.roundScore;
+            this.scoreCtrl[notif.args.player_id].incValue(-notif.args.roundScore);
         },
 
-        // All players scores were updated
-        // This is sent to all players
-        notif_newScores: function(notif) {
-            // Update players' scores
-            this.updateGameScores(notif.args.gameScores);
+        // Show score table
+        notif_showScores: function(notif) {
+            let tableDlg = new ebg.popindialog();
+            tableDlg.create('tableWindow');
+            tableDlg.setTitle(notif.args_end_of_game ? _('End of Round') : _('End of Game'));
+
+            let parts = ['<div class="tableWindow">'];
+            parts.push('<table>',
+                '<tr>',
+                '<th></th>',
+                '<th>', _('Collected cards'), '</th>',
+                '<th>', _('Round points'), '</th>',
+                '<th>', _('Total points'), '</th>',
+                '</tr>');
+            for (const [player_id, player_info] of Object.entries(this.gamedatas.players)) {
+                parts.push('<tr>');
+                parts.push(`<td>`, this.format_block('jstpl_player_name', player_info), '</td>');
+                parts.push(`<td id="bgabnc_scorediag_${player_id}"></td>`);
+                parts.push('<td>', player_info.score_pile.score, '</td>');
+                parts.push('<td>', this.scoreCtrl[player_id].getValue(), '</td>');
+                parts.push('</tr>');
+            }
+
+            parts.push('</table>',
+                '<br/><br/><div style="text-align: center">',
+                '<a class="bgabutton bgabutton_blue" id="close_btn" href="#"><span>',
+                _('Close'),
+                '</span></a></div></div>');
+
+            tableDlg.setContent(parts.join(''));
+            for (const [player_id, player_info] of Object.entries(this.gamedatas.players)) {
+                let container = document.getElementById(`bgabnc_scorediag_${player_id}`);
+                this.renderScorePile(player_id, player_info.score_pile, container);
+            }
+
+            if ( $('close_btn') ) {
+                dojo.connect( $('close_btn'), 'onclick', this, function( evt )
+                {
+                    evt.preventDefault();
+                    tableDlg.destroy();
+                } );
+            }
+
+            tableDlg.show();
         },
    });
 });

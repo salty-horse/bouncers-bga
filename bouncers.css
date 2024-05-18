@@ -413,3 +413,7 @@
     display: inline-block;
     width: 100%;
 }
+
+.tableWindow table {
+    margin: 0 auto;
+}
