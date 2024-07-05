@@ -192,31 +192,30 @@
 }
 
 .bgabnc_points_card {
+  width: var(--bgabnc-points-card-width);
+  height: var(--bgabnc-points-card-height);
   display: inline-flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   text-align: center;
+  padding: 8px;
   user-select: none;
-  width: var(--bgabnc-points-card-width);
-  height: var(--bgabnc-points-card-height);
+  background-color: white;
+  border-radius: 5px;
+  box-shadow: 1px 1px 1px 1px black;
   transition: all 1s ease-in-out;
 }
 
 .bgabnc_points_card div {
-  font-size: 57px;
-  width: var(--bgabnc-points-card-width);
-  height: var(--bgabnc-points-card-height);
+  font-size: 65px;
+  height: 100%;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
-}
-
-.bgabnc_points_card_letter {
-  outline: 1px solid #000;
-  background-color: white;
-  border-radius: 5px;
-  box-shadow: 1px 1px 1px 1px black;
+  transition: all 1s ease-in-out;
 }
 
 .bgabnc_points_card_x_on::before {
@@ -231,25 +230,7 @@
 }
 
 .bgabnc_points_card.bgabnc_small {
-  width: var(--bgabnc-points-card-small-width);
-  height: var(--bgabnc-points-card-small-height);
-  padding-left: 4px;
-  padding-right: 4px;
-}
-
-.bgabnc_points_card.bgabnc_small div {
-  width: var(--bgabnc-points-card-small-width);
-  height: var(--bgabnc-points-card-small-height);
-}
-
-.bgabnc_points_card.bgabnc_small > .bgabnc_points_card_letter {
-    font-size: 25px;
-    border-radius: 3px;
-    box-shadow: 0.3px 0.3px 0.3px 0.3px black;
-}
-
-.bgabnc_points_card.bgabnc_small > .bgabnc_points_card_x {
-    font-size: 37px !important;
+    transform: scale(0.4);
 }
 
 .bgabnc_suit_spade {

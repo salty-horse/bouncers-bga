@@ -327,7 +327,25 @@ function (dojo, declare, domStyle, lang, attr) {
             let container = document.getElementById('bgabnc_points_slot');
             dojo.place(this.format_block('jstpl_points_card', {
                     value: this.gamedatas.rank_labels[value],
+                    on_class: '',
+                    small_class: '',
+                    ability: this.getAbilityString(value),
                 }), container);
+        },
+
+        getAbilityString: function(value) {
+            if (!this.gamedatas.special_abilities)
+                return '';
+
+            if (value == 11) {
+                return 'MIN';
+            } else if (value == 12) {
+                return '◀';
+            } else if (value == 13) {
+                return 'MAX';
+            } else {
+                return '';
+            }
         },
 
         initScorePile: function(player_id, score_pile) {
@@ -356,11 +374,13 @@ function (dojo, declare, domStyle, lang, attr) {
             let args = {
                 value: label,
                 on_class: '',
+                small_class: 'bgabnc_small',
+                ability: this.getAbilityString(card_value),
             };
             if (with_x) {
                 args.on_class = 'bgabnc_points_card_x_on';
             }
-            dojo.place(this.format_block('jstpl_points_card_small', args), container);
+            dojo.place(this.format_block('jstpl_points_card', args), container);
             // TODO: Tooltip
         },
 

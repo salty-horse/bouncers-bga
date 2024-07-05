@@ -157,6 +157,8 @@ class Bouncers extends Table {
             $result['upcoming_points'] = $this->getUpcomingCards();
         }
 
+        $result['special_abilities'] = $this->getGameStateValue('specialBouncerAbilities');
+
         $result['handNum'] = $this->getGameStateValue('handNum');
 
         foreach ($result['players'] as &$player) {
@@ -179,19 +181,9 @@ class Bouncers extends Table {
         This method is called each time we are in a game state with "updateGameProgression" property (see states.inc.php)
     */
     function getGameProgression() {
-        // Game progression: get player minimum score
-        return 1; // TODO
-        /*
-        $maxScore = 0;
-        foreach ($currentRoundScores as $playerId => $score) {
-            $maxScore = max($maxScore, $score);
-        }
-
-        $playerCount = 3;
-        $roundPercentage = (int) (100 / $playerCount);
-        $extra = 100 - ($playerCount * $roundPercentage);
-        return ($roundPercentage * $this->getCurrentRound()) + min($roundPercentage, ($maxScore / $playerCount)) + $extra;
-         */
+        // Use max player score at the end of a hand for the progression percentage
+        $max_score = $this->getUniqueValueFromDB("SELECT MAX(player_score) from player");
+        return min($max_score, 99);
     }
 
 

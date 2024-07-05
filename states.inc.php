@@ -108,7 +108,6 @@ $machinestates = [
         'description' => '',
         'type' => 'game',
         'action' => 'stEndHand',
-        'updateGameProgression' => true,
         'transitions' => [
             'gameEnd' => STATE_END_GAME,
             'newHand' => STATE_NEW_HAND
