@@ -25,6 +25,10 @@
 -->
 <div id="bgbnc_table">
     <div id="bgabnc_playarea">
+        <div id="bgabnc_upcoming" class="whiteblock">
+            <div>{UPCOMING}:</div>
+            <div id="bgabnc_upcoming_list"></div>
+        </div>
         <div id="bgabnc_playertables">
             <div class="bgabnc_flex_break"></div>
 
@@ -42,12 +46,8 @@
             <!-- END player -->
 
             <div class="whiteblock" id="bgabnc_pointstable">
-                <div>{SCORE_CARD_LABEL}</div>
+                <div>{SCORE_CARD_LABEL}:</div>
                 <div id="bgabnc_points_slot"></div>
-                <div id="bgabnc_upcoming">
-                    <div>{UPCOMING}:</div>
-                    <div id="bgabnc_upcoming_list"></div>
-                </div>
             </div>
         </div>
     </div>

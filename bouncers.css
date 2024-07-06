@@ -48,13 +48,14 @@
 :root {
     --bgabnc-points-card-width: 72px;
     --bgabnc-points-card-height: 96px;
-    --bgabnc-points-card-small-width: 24.75px;
-    --bgabnc-points-card-small-height: 33px;
+    --bgabnc-points-card-small-width: calc(var(--bgabnc-points-card-width) / 2);
+    --bgabnc-points-card-small-height: calc(var(--bgabnc-points-card-height) / 2);
 }
 
 #bgabnc_playarea {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    flex-direction: column;
     flex-wrap: wrap;
     min-height: 340px;
     margin-bottom: 60px;
@@ -62,6 +63,18 @@
 
 #bgabnc_playarea > div {
     flex-basis: auto;
+}
+
+#bgabnc_upcoming {
+    margin: 0 auto;
+}
+
+#bgabnc_upcoming_list {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-top: 5px;
 }
 
 .bgabnc_container {
@@ -111,11 +124,11 @@
     align-items: flex-start;
 }
 
-#bgabnc_playertables :nth-child(1) { order: 4; }
-#bgabnc_playertables :nth-child(2) { order: 5; }
-#bgabnc_playertables :nth-child(3) { order: 1; }
-#bgabnc_playertables :nth-child(4) { order: 3; }
-#bgabnc_playertables :nth-child(5) { order: 2; }
+#bgabnc_playertables > :nth-child(1) { order: 4; }
+#bgabnc_playertables > :nth-child(2) { order: 5; }
+#bgabnc_playertables > :nth-child(3) { order: 1; }
+#bgabnc_playertables > :nth-child(4) { order: 3; }
+#bgabnc_playertables > :nth-child(5) { order: 2; }
 
 .bgabnc_flex_break {
     flex-basis: 100%;
@@ -186,40 +199,70 @@
 }
 
 #bgabnc_points_slot {
-  display: inline-block;
-  width: var(--bgabnc-points-card-width);
-  height: var(--bgabnc-points-card-height);
+    display: inline-block;
+    width: var(--bgabnc-points-card-width);
+    height: var(--bgabnc-points-card-height);
+    padding-top: 5px;
 }
 
 .bgabnc_points_card {
-  width: var(--bgabnc-points-card-width);
-  height: var(--bgabnc-points-card-height);
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  padding: 8px;
-  user-select: none;
-  background-color: white;
-  border-radius: 5px;
-  box-shadow: 1px 1px 1px 1px black;
-  transition: all 1s ease-in-out;
+    width: var(--bgabnc-points-card-width) !important;
+    height: var(--bgabnc-points-card-height) !important;
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    user-select: none;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 1px 1px 1px 1px black;
 }
 
-.bgabnc_points_card div {
-  font-size: 65px;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-  transition: all 1s ease-in-out;
+.bgabnc_points_card.bgabnc_small {
+    width: var(--bgabnc-points-card-small-width) !important;
+    height: var(--bgabnc-points-card-small-height) !important;
+    border-radius: 2.5px;
+	position: relative; /* For X position absolutely */
+}
+
+.bgabnc_points_card > div {
+    font-size: 50px;
+}
+
+.bgabnc_points_card.bgabnc_small > div {
+    font-size: 25px;
+}
+
+.bgabnc_points_card_letter, .bgabnc_points_card_ability {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.bgabnc_points_card_ability {
+    font-size: 20px !important;
+    margin-top: 5px;
+}
+
+.bgabnc_small .bgabnc_points_card_ability {
+    font-size: 10px !important;
+    margin-top: 2.5px;
+}
+
+.bgabnc_points_card div:empty {
+    display: none;
 }
 
 .bgabnc_points_card_x_on::before {
     content: '🗙';
+}
+
+.bgabnc_points_card_x_on {
+    display: block !important;
 }
 
 .bgabnc_points_card_x {
@@ -229,8 +272,8 @@
     font-size: 102px !important;
 }
 
-.bgabnc_points_card.bgabnc_small {
-    transform: scale(0.4);
+.bgabnc_small .bgabnc_points_card_x {
+    font-size: 51px !important;
 }
 
 .bgabnc_suit_spade {

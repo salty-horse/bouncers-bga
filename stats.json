@@ -1,0 +1,16 @@
+{
+  "table": {
+  },
+  "player": {
+    "collected_0_cards_in_a_round": {
+      "id": 10,
+      "name": "Collected 0 cards in a round",
+      "type": "int"
+    },
+    "collected_0_points_in_a_round": {
+      "id": 11,
+      "name": "Collected 0 points in a round",
+      "type": "float"
+    }
+  }
+}

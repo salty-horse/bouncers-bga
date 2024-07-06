@@ -326,7 +326,7 @@ function (dojo, declare, domStyle, lang, attr) {
         showPointsCard: function(value) {
             let container = document.getElementById('bgabnc_points_slot');
             dojo.place(this.format_block('jstpl_points_card', {
-                    value: this.gamedatas.rank_labels[value],
+                    value: this.gamedatas.point_labels[value],
                     on_class: '',
                     small_class: '',
                     ability: this.getAbilityString(value),
@@ -370,7 +370,7 @@ function (dojo, declare, domStyle, lang, attr) {
         },
 
         renderPointsCardInPile: function(card_value, with_x, container) {
-            let label = this.gamedatas.rank_labels[card_value];
+            let label = this.gamedatas.point_labels[card_value];
             let args = {
                 value: label,
                 on_class: '',

@@ -36,7 +36,7 @@ $this->suits = [
           'symbol' => clienttranslate('♠')],
 ];
 
-$this->rank_label = [
+$this->rank_labels = [
     2 => '2',
     3 => '3',
     4 => '4',
@@ -46,8 +46,24 @@ $this->rank_label = [
     8 => '8',
     9 => '9',
     10 => '10',
-    11 => clienttranslate('J'),
-    12 => clienttranslate('Q'),
-    13 => clienttranslate('K'),
-    14 => clienttranslate('A')
+    11 => 'J',
+    12 => 'Q',
+    13 => 'K',
+    14 => 'A'
+];
+
+$this->point_labels = [
+    2 => '2',
+    3 => '3',
+    4 => '4',
+    5 => '5',
+    6 => '6',
+    7 => '7',
+    8 => '8',
+    9 => '9',
+    10 => '10',
+    11 => 'J',
+    12 => 'Q',
+    13 => 'K',
+    14 => '11'
 ];

@@ -73,6 +73,9 @@ class Bouncers extends Table {
         // Create cards
         $this->createCards();
 
+        self::initStat('player', 'collected_0_cards_in_a_round', 0);
+        self::initStat('player', 'collected_0_points_in_a_round', 0);
+
         /************ End of the game initialization *****/
     }
 
@@ -166,7 +169,7 @@ class Bouncers extends Table {
             $player['score_pile'] = $this->getScorePile($player_id);
         }
 
-        $result['rank_labels'] = $this->rank_label;
+        $result['point_labels'] = $this->point_labels;
 
         return $result;
     }
@@ -438,7 +441,7 @@ class Bouncers extends Table {
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'rank' => $current_card['type_arg'],
-            'rank_displayed' => $this->rank_label[$current_card['type_arg']],
+            'rank_displayed' => $this->rank_labels[$current_card['type_arg']],
             'suit' => $current_card['type'],
             'suit_displayed' => '<span class="bgabnc_icon bgabnc_suit'.$current_card['type'] . '"></span>',
             'currentPlayer' => $this->getCurrentPlayer()
@@ -554,7 +557,7 @@ class Bouncers extends Table {
             $args = [
                 'player_id' => $winningPlayer,
                 'player_name' => $players[$winningPlayer]['player_name'],
-                'points' => $this->rank_label[$current_point_card['type_arg']],
+                'points' => $this->point_labels[$current_point_card['type_arg']],
                 'score_pile' => $this->getScorePile($winningPlayer),
             ];
             if ($this->cards->countCardInLocation('hand') == 0) {
@@ -609,6 +612,14 @@ class Bouncers extends Table {
                 'player_name' => $player_info['player_name'],
                 'points' => $score_pile['score'],
             ]);
+
+            if ($score_pile['score'] == 0) {
+                self::incStat(1, 'collected_0_points_in_a_round', $player_id);
+            }
+
+            if (count($score_pile['score']) == 0) {
+                self::incStat(1, 'collected_0_cards_in_a_round', $player_id);
+            }
         }
 
         if ($end_game) {
