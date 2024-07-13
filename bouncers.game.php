@@ -75,6 +75,7 @@ class Bouncers extends Table {
 
         self::initStat('player', 'collected_0_cards_in_a_round', 0);
         self::initStat('player', 'collected_0_points_in_a_round', 0);
+        self::initStat('player', 'ununsed_bouncers', 0);
 
         /************ End of the game initialization *****/
     }
@@ -107,7 +108,7 @@ class Bouncers extends Table {
 
     function createCards() {
         $cards = [];
-        for ($suit = 1; $suit <= 3; $suit++) {
+        for ($suit = 0; $suit <= 2; $suit++) {
             for ($value = 2; $value <= 14; $value++) {
                 $cards[] = ['type' => $suit, 'type_arg' => $value, 'nbr' => 1];
             }
@@ -365,6 +366,8 @@ class Bouncers extends Table {
         }
 
         $score = 0;
+        $unused_bouncers = 0;
+
         foreach ($score_pile_cards as &$item)  {
             if (count($item) > 1)
                 continue;
@@ -374,6 +377,7 @@ class Bouncers extends Table {
                 case 12:
                 case 13:
                     $score += 25;
+                    $unused_bouncers += 1;
                     break;
                 case 14:
                     $score += 11;
@@ -387,6 +391,7 @@ class Bouncers extends Table {
         return [
             'score' => $score,
             'score_pile' => $score_pile_cards,
+            'unused_bouncers' => $unused_bouncers,
         ];
     }
 
@@ -617,9 +622,10 @@ class Bouncers extends Table {
                 self::incStat(1, 'collected_0_points_in_a_round', $player_id);
             }
 
-            if (count($score_pile['score']) == 0) {
+            if (count($score_pile['score_pile']) == 0) {
                 self::incStat(1, 'collected_0_cards_in_a_round', $player_id);
             }
+            self::incStat($score_pile['unused_bouncers'], 'unused_bouncers', $player_id);
         }
 
         if ($end_game) {

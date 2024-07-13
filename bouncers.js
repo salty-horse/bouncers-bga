@@ -70,7 +70,7 @@ function (dojo, declare, domStyle, lang, attr) {
             // Cards in player's hand
             this.addCardsToStock(this.playerHand, this.gamedatas.hand);
 
-            this.showPointsCard(this.gamedatas.points_card);
+            this.renderBigPointsCard(this.gamedatas.points_card);
 
             // Cards played on table
             for (var i in this.gamedatas.cardsontable) {
@@ -202,14 +202,9 @@ function (dojo, declare, domStyle, lang, attr) {
             return parseInt(suit) * 13 + (parseInt(rank) - 2);
         },
 
-        // Return the string suit from the card id (also known as the card type)
-        getCardSuitFromId: function(card_id) {
-            return this.getCardSuit(this.getCardSuitNumFromId(card_id));
-        },
-
         // Return the card suit string from the numerical representation
         getCardSuit: function(suit) {
-            return ["club", "diamond", "spade", "heart"][suit];
+            return ["club", "diamond", "spade"][suit];
         },
 
         // Return the numerical value of the suit from the card id (also known as the card type)
@@ -323,16 +318,6 @@ function (dojo, declare, domStyle, lang, attr) {
            Other UI utility methods
          */
 
-        showPointsCard: function(value) {
-            let container = document.getElementById('bgabnc_points_slot');
-            dojo.place(this.format_block('jstpl_points_card', {
-                    value: this.gamedatas.point_labels[value],
-                    on_class: '',
-                    small_class: '',
-                    ability: this.getAbilityString(value),
-                }), container);
-        },
-
         getAbilityString: function(value) {
             if (!this.gamedatas.special_abilities)
                 return '';
@@ -357,7 +342,7 @@ function (dojo, declare, domStyle, lang, attr) {
 
         renderScorePile: function(player_id, score_pile, container) {
             for (let card of score_pile.score_pile) {
-                this.renderPointsCardInPile(card[0], card.length == 2, container);
+                this.renderPointsCard(card[0], /*with_x*/card.length == 2, /*is_small*/true, container);
             }
         },
 
@@ -365,23 +350,45 @@ function (dojo, declare, domStyle, lang, attr) {
             let container = document.getElementById('bgabnc_upcoming_list');
             container.innerHTML = '';
             for (let value of upcoming_cards) {
-                this.renderPointsCardInPile(value, false, container);
+                this.renderPointsCard(value, /*with_x*/false, /*is_small*/true, container);
             }
         },
 
-        renderPointsCardInPile: function(card_value, with_x, container) {
-            let label = this.gamedatas.point_labels[card_value];
+        renderBigPointsCard: function(value) {
+            let container = document.getElementById('bgabnc_points_slot');
+            this.renderPointsCard(value, /*with_x*/false, /*is_small*/false, container);
+        },
+
+        renderPointsCard: function(value, with_x, is_small, container) {
+            let label = this.gamedatas.point_labels[value];
+            let elem_id = `bgabnc_points_card_${value}_${is_small}`;
             let args = {
+                id: elem_id,
                 value: label,
                 on_class: '',
-                small_class: 'bgabnc_small',
-                ability: this.getAbilityString(card_value),
+                small_class: is_small ? 'bgabnc_small' : '',
+                ability: this.getAbilityString(value),
             };
             if (with_x) {
                 args.on_class = 'bgabnc_points_card_x_on';
             }
             dojo.place(this.format_block('jstpl_points_card', args), container);
-            // TODO: Tooltip
+            if (11 <= value && value <= 13) {
+                let tooltip;
+                if (!this.gamedatas.special_abilities) {
+                    tooltip = _('Cancels out the highest uncancelled numeric points card.');
+                } else if (value == 11) {
+                    tooltip = _('Cancels out the lowest numeric points card.');
+                } else if (value == 12) {
+                    tooltip = _('Cancels out the most recently collected numeric points card.');
+                } else if (value == 13) {
+                    tooltip = _('Cancels out the highest numeric points card.');
+                }
+
+                let tooltipText = [tooltip, _('Worth 25 points if unused.')].join('<br><br>');
+
+                this.addTooltip(elem_id, tooltipText, '');
+            }
         },
 
         updateScorePile: function(player_id, score_pile) {
@@ -535,7 +542,7 @@ function (dojo, declare, domStyle, lang, attr) {
         // A new hand is starting
         // This message is sent to every player
         notif_newHandPublic: function(notif) {
-            this.showPointsCard(notif.args.points_card);
+            this.renderBigPointsCard(notif.args.points_card);
             if (notif.args.upcoming_points != undefined) {
                 this.renderUpcomingPile(this.gamedatas.upcoming_points);
             }
@@ -582,7 +589,7 @@ function (dojo, declare, domStyle, lang, attr) {
                 await new Promise(r => setTimeout(r, 1000));
 
             if (notif.args.points_card) {
-                this.showPointsCard(notif.args.points_card);
+                this.renderBigPointsCard(notif.args.points_card);
                 if (this.gamedatas.upcoming_points != undefined) {
                     document.getElementById('bgabnc_upcoming_list').firstChild.remove();
                 }

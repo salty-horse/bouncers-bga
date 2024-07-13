@@ -10,7 +10,12 @@
     "collected_0_points_in_a_round": {
       "id": 11,
       "name": "Collected 0 points in a round",
-      "type": "float"
+      "type": "int"
+    },
+    "unused_bouncers": {
+      "id": 12,
+      "name": "Unused bouncers",
+      "type": "int"
     }
   }
 }

@@ -70,10 +70,7 @@
 }
 
 #bgabnc_upcoming_list {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 10px;
+    text-align: center;
     padding-top: 5px;
 }
 
@@ -209,6 +206,7 @@
     width: var(--bgabnc-points-card-width) !important;
     height: var(--bgabnc-points-card-height) !important;
     display: inline-flex;
+    vertical-align: middle;
     flex-direction: column;
     justify-content: center;
     align-items: center;
@@ -217,13 +215,15 @@
     background-color: white;
     border-radius: 5px;
     box-shadow: 1px 1px 1px 1px black;
+    margin-left: 3px;
+    margin-right: 3px;
 }
 
 .bgabnc_points_card.bgabnc_small {
     width: var(--bgabnc-points-card-small-width) !important;
     height: var(--bgabnc-points-card-small-height) !important;
     border-radius: 2.5px;
-	position: relative; /* For X position absolutely */
+    position: relative; /* For X position absolutely */
 }
 
 .bgabnc_points_card > div {

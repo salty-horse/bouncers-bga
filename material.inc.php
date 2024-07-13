@@ -24,15 +24,12 @@
 $this->suits = [
     0 => ['name' => clienttranslate('club'),
           'pluralname' => clienttranslate('Clubs'),
-          'nametr' => self::_('club'),
           'symbol' => clienttranslate('♣')],
     1 => ['name' => clienttranslate('diamond'),
           'pluralname' => clienttranslate('Diamonds'),
-          'nametr' => self::_('diamond'),
           'symbol' => clienttranslate('♦')],
     2 => ['name' => clienttranslate('spade'),
           'pluralname' => clienttranslate('Spades'),
-          'nametr' => self::_('spade'),
           'symbol' => clienttranslate('♠')],
 ];
 
