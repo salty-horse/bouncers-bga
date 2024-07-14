@@ -121,11 +121,19 @@
     align-items: flex-start;
 }
 
-#bgabnc_playertables > :nth-child(1) { order: 4; }
-#bgabnc_playertables > :nth-child(2) { order: 5; }
+#bgabnc_playertables > :nth-child(1) { order: 2; }
+#bgabnc_playertables > :nth-child(2) { order: 4; }
 #bgabnc_playertables > :nth-child(3) { order: 1; }
 #bgabnc_playertables > :nth-child(4) { order: 3; }
-#bgabnc_playertables > :nth-child(5) { order: 2; }
+#bgabnc_playertables > :nth-child(5) { order: 5; }
+
+@media (max-width: 725px) {
+    #bgabnc_playertables > :nth-child(1) { order: 1; }
+    #bgabnc_playertables > :nth-child(2) { order: 2; }
+    #bgabnc_playertables > :nth-child(3) { order: 3; }
+    #bgabnc_playertables > :nth-child(4) { order: 4; }
+    #bgabnc_playertables > :nth-child(5) { order: 5; }
+}
 
 .bgabnc_flex_break {
     flex-basis: 100%;
@@ -418,8 +426,8 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
-    margin-left: 10px;
-    margin-right: 0px;
+    max-width: 1028px;
+    margin: 0 auto;
 }
 
 #bgabnc_my_hand_container {

@@ -75,7 +75,7 @@ class Bouncers extends Table {
 
         self::initStat('player', 'collected_0_cards_in_a_round', 0);
         self::initStat('player', 'collected_0_points_in_a_round', 0);
-        self::initStat('player', 'ununsed_bouncers', 0);
+        self::initStat('player', 'unused_bouncers', 0);
 
         /************ End of the game initialization *****/
     }
@@ -537,6 +537,19 @@ class Bouncers extends Table {
         }
         self::notifyAllPlayers('newHandPublic', '', $args);
         $this->gamestate->nextState();
+    }
+
+    function stPlayerTurnTryAutoplay() {
+        $player_id = $this->getActivePlayerId();
+        $cards_in_hand = $this->cards->getPlayerHand($player_id);
+        if (count($cards_in_hand) == 1) {
+            $this->playCardFromPlayer(array_values($cards_in_hand)[0]['id'], $player_id);
+            $this->gamestate->nextState('nextPlayer');
+            return;
+        } else {
+            $this->gamestate->nextState('playerTurn');
+            return;
+        }
     }
 
     function stNextPlayer() {

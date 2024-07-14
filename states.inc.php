@@ -54,9 +54,10 @@
 if (!defined('STATE_END_GAME')) {
 
 define('STATE_NEW_HAND', 2);
-define('STATE_PLAYER_TURN', 3);
-define('STATE_NEXT_PLAYER', 4);
-define('STATE_END_HAND', 5);
+define('STATE_PLAYER_TURN_TRY_AUTOPLAY', 3);
+define('STATE_PLAYER_TURN', 4);
+define('STATE_NEXT_PLAYER', 5);
+define('STATE_END_HAND', 6);
 define('STATE_END_GAME', 99);
 }
 
@@ -77,7 +78,18 @@ $machinestates = [
         'type' => 'game',
         'action' => 'stNewHand',
         'updateGameProgression' => true,
-        'transitions' => ['' => STATE_PLAYER_TURN]
+        'transitions' => ['' => STATE_PLAYER_TURN_TRY_AUTOPLAY]
+    ],
+
+    STATE_PLAYER_TURN_TRY_AUTOPLAY => [
+        'name' => 'playerTurnTryAutoplay',
+        'description' => '',
+        'type' => 'game',
+        'action' => 'stPlayerTurnTryAutoplay',
+        'transitions' => [
+            'playerTurn' => STATE_PLAYER_TURN,
+            'nextPlayer' => STATE_NEXT_PLAYER,
+        ]
     ],
     
     STATE_PLAYER_TURN => [
