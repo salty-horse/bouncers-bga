@@ -1,16 +1,16 @@
 {
   "100": {
     "name": "Show upcoming points cards",
-    "values": [
-      {
+    "values": {
+      "0": {
         "name": "No",
         "description": "Only the current points card is visible."
       },
-      {
+      "1": {
         "name": "Yes",
         "description": "All upcoming points cards are visible."
       }
-    ],
+    },
     "default": 0
   },
   "101": {
@@ -20,7 +20,7 @@
         "name": "No",
         "description": "Each bouncer cancels a top-scoring card."
       },
-      "2": {
+      "1": {
         "name": "Yes",
         "description": "The King cancels the highest card, the Jack cancels the lowest card, and the Queen cancels the previous card."
       }

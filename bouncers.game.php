@@ -157,11 +157,11 @@ class Bouncers extends Table {
 
         // Point card
         $result['points_card'] = $this->cards->getCardOnTop('points')['type_arg'];
-        if ($this->getGameStateValue('showUpcomingPoints')) {
+        if ($this->getGameStateValue('showUpcomingPoints') == '1') {
             $result['upcoming_points'] = $this->getUpcomingCards();
         }
 
-        $result['special_abilities'] = $this->getGameStateValue('specialBouncerAbilities');
+        $result['special_abilities'] = $this->getGameStateValue('specialBouncerAbilities') == '1';
 
         $result['handNum'] = $this->getGameStateValue('handNum');
 
@@ -186,8 +186,8 @@ class Bouncers extends Table {
     */
     function getGameProgression() {
         // Use max player score at the end of a hand for the progression percentage
-        $max_score = $this->getUniqueValueFromDB("SELECT MAX(player_score) from player");
-        return min($max_score, 99);
+        $max_score = $this->getUniqueValueFromDB("SELECT MIN(player_score) from player");
+        return min(-1 * $max_score, 99);
     }
 
 
@@ -413,14 +413,16 @@ class Bouncers extends Table {
 
     // Play a card from the active player's hand
     function playCard($card_id) {
+        self::checkAction('playCard');
         $player_id = self::getActivePlayerId();
         $this->playCardFromPlayer($card_id, $player_id);
+
+        // Next player
+        $this->gamestate->nextState();
     }
 
     // Play a card from player hand
     function playCardFromPlayer($card_id, $player_id) {
-        self::checkAction('playCard');
-
         $current_card = $this->cards->getCard($card_id);
 
         // Sanity check. A more thorough check is done later.
@@ -451,9 +453,6 @@ class Bouncers extends Table {
             'suit_displayed' => '<span class="bgabnc_icon bgabnc_suit'.$current_card['type'] . '"></span>',
             'currentPlayer' => $this->getCurrentPlayer()
         ]);
-
-        // Next player
-        $this->gamestate->nextState('playCard');
     }
 
 /************** Player Action helper functions ****************/
@@ -532,7 +531,7 @@ class Bouncers extends Table {
             'cards' => $cards,
             'points_card' => $this->cards->getCardOnTop('points')['type_arg'],
         ];
-        if ($this->getGameStateValue('showUpcomingPoints')) {
+        if ($this->getGameStateValue('showUpcomingPoints') == '1') {
             $args['upcoming_points'] = $this->getUpcomingCards();
         }
         self::notifyAllPlayers('newHandPublic', '', $args);
@@ -680,6 +679,9 @@ class Bouncers extends Table {
             $cardId = $playableCards[$keys[$randomCard]]['id'];
 
             $this->playCardFromPlayer($cardId, $activePlayer);
+
+            // Next player
+            $this->gamestate->nextState();
         }
     }
 }

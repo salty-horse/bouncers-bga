@@ -415,7 +415,7 @@ function (dojo, declare, domStyle, lang, attr) {
                 return;
             if (!player_id)
                 return;
-            dojo.addClass('bgabnc_playertable_' + this.getActivePlayerId(), 'bgabnc_activeplayer');
+            dojo.addClass(`bgabnc_playertable_${player_id}`, 'bgabnc_activeplayer');
         },
 
         animateFrom: function(elem, oldPos, duration = 500) {
@@ -623,7 +623,7 @@ function (dojo, declare, domStyle, lang, attr) {
                 parts.push('<tr>');
                 parts.push(`<td>`, this.format_block('jstpl_player_name', player_info), '</td>');
                 parts.push(`<td id="bgabnc_scorediag_${player_id}"></td>`);
-                parts.push('<td>', player_info.score_pile.score, '</td>');
+                parts.push('<td>', -player_info.score_pile.score, '</td>');
                 parts.push('<td>', this.scoreCtrl[player_id].getValue(), '</td>');
                 parts.push('</tr>');
             }

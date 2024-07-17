@@ -108,8 +108,8 @@ $machinestates = [
         'type' => 'game',
         'action' => 'stNextPlayer',
         'transitions' => [
-            'nextPlayer' => STATE_PLAYER_TURN,
-            'nextTrick' => STATE_PLAYER_TURN,
+            'nextPlayer' => STATE_PLAYER_TURN_TRY_AUTOPLAY,
+            'nextTrick' => STATE_PLAYER_TURN_TRY_AUTOPLAY,
             'endHand' => STATE_END_HAND
         ]
     ],
