@@ -266,7 +266,7 @@
 }
 
 .bgabnc_points_card_x_on::before {
-    content: '🗙';
+    content: '✕';
 }
 
 .bgabnc_points_card_x_on {
@@ -281,7 +281,8 @@
 }
 
 .bgabnc_small .bgabnc_points_card_x {
-    font-size: 51px !important;
+    font-size: 81px !important;
+    margin-left: 1px;
 }
 
 .bgabnc_suit_spade {
