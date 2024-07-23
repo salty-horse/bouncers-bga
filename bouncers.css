@@ -281,8 +281,9 @@
 }
 
 .bgabnc_small .bgabnc_points_card_x {
-    font-size: 81px !important;
+    font-size: 60px !important;
     margin-left: 1px;
+    margin-top: 3px;
 }
 
 .bgabnc_suit_spade {
