@@ -61,7 +61,7 @@ class Bouncers extends Table {
         /************ Start the game initialization *****/
         // Init global values with their initial values
 
-        self::setGameStateInitialValue('ledSuit', 0);
+        self::setGameStateInitialValue('ledSuit', -1);
         self::setGameStateInitialValue('handNum', 0);
 
         // Activate first player (which is in general a good idea :))
@@ -228,7 +228,7 @@ class Bouncers extends Table {
     function getPlayableCards($playerId) {
         $cardsInHand = $this->cards->getPlayerHand($playerId);
         $ledSuit = self::getGameStateValue('ledSuit');
-        if ($ledSuit == 0) {
+        if ($ledSuit == -1) {
             // All cards in the hand are valid to play
             return $cardsInHand;
         }
@@ -438,7 +438,7 @@ class Bouncers extends Table {
 
         // Checks are done! now we can play our card
         $this->cards->moveCard($card_id, 'cardsontable', $player_id);
-        if (self::getGameStateValue('ledSuit') == 0)
+        if (self::getGameStateValue('ledSuit') == -1)
             self::setGameStateValue('ledSuit', $current_card['type']);
 
         // And notify
@@ -561,7 +561,7 @@ class Bouncers extends Table {
             $this->gamestate->changeActivePlayer($winningPlayer);
             $this->setCurrentPlayer($winningPlayer);
 
-            self::setGameStateValue('ledSuit', 0);
+            self::setGameStateValue('ledSuit', -1);
 
             // Put cards back in deck
             $this->cards->moveAllCardsInLocation('cardsontable', 'deck');
