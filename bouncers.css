@@ -123,16 +123,16 @@
 
 #bgabnc_playertables > :nth-child(1) { order: 2; }
 #bgabnc_playertables > :nth-child(2) { order: 4; }
-#bgabnc_playertables > :nth-child(3) { order: 1; }
-#bgabnc_playertables > :nth-child(4) { order: 3; }
-#bgabnc_playertables > :nth-child(5) { order: 5; }
+.bgabnc_playertable_S { order: 5; }
+.bgabnc_playertable_W { order: 1; }
+.bgabnc_playertable_E { order: 3; }
 
 @media (max-width: 725px) {
     #bgabnc_playertables > :nth-child(1) { order: 1; }
     #bgabnc_playertables > :nth-child(2) { order: 2; }
-    #bgabnc_playertables > :nth-child(3) { order: 3; }
-    #bgabnc_playertables > :nth-child(4) { order: 4; }
-    #bgabnc_playertables > :nth-child(5) { order: 5; }
+    .bgabnc_playertable_S { order: 5; }
+    .bgabnc_playertable_W { order: 3; }
+    .bgabnc_playertable_E { order: 4; }
 }
 
 .bgabnc_flex_break {
